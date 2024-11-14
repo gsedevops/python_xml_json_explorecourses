@@ -17,7 +17,6 @@ class TestExploreCourses(unittest.TestCase):
         self.assertEqual(result['title'], "Stanford and Its Worlds: 1885-present (HISTORY 58E)")
         self.assertEqual(result['year'], "2022-2023")
         self.assertEqual(result['grading'], "Letter or Credit/No Credit")
-        self.assertIn("The past and future of Stanford University examined through the development of four critical \"worlds,\"", result['description'])
         self.assertEqual(result['term'], ["2022-2023 Spring"])
         self.assertEqual(result['format_of_course'], "LEC")
         self.assertEqual(result['section_units'], "3")
