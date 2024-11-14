@@ -4,10 +4,11 @@ import pandas as pd
 import pendulum
 import re
 import requests
-import xmltodict
+import xmltodict  # for troubleshooting
+
 from collections import OrderedDict
 from furl import furl
-from xml.dom.minidom import parse, parseString, Node
+from xml.dom.minidom import parseString, Node
 
 
 Audience_list = ["Audience", "Doctoral", "Masters", "Undergraduate"]
