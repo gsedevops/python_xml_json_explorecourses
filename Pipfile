@@ -9,7 +9,6 @@ pandas = "==2.2.3"
 pendulum = "==3.0.0"
 requests = "==2.32.3"
 xmltodict = "==0.14.2"
-python-xml-json-explorecourses = {file = ".", editable = true}
 
 [dev-packages]
 pytest = "==8.3.3"

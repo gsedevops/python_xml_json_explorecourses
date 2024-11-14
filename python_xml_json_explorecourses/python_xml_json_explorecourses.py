@@ -987,7 +987,7 @@ def concise_course_dictionary_course_response(course, request_url_string):
     return dictionary
 
 
-def python_xml_parsing(**params):
+def xml_to_dictionary(**params):
     # https://stackoverflow.com/questions/15301999/default-arguments-with-args-and-kwargs
     # https://stackoverflow.com/a/64926425
     defaultParams = {
@@ -1135,6 +1135,6 @@ if __name__ == "__main__":
     #    "totalSubjectSearch": 1,
     # }
 
-    dictionary = python_xml_parsing(**params)
+    dictionary = xml_to_dictionary(**params)
     json_object = json.dumps(dictionary, indent=2)
     print(json_object)
