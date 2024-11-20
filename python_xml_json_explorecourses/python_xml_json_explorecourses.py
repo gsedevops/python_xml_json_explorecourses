@@ -1084,17 +1084,17 @@ def xml_to_dictionary(**params):
                     # print(code)
                     # exit()
 
-                    if totalSubjectSearch:
-                        second_conditional = totalSubjectSearch
-                        if subject == sanitized_course_subject and second_conditional:
-                            single_course_dictionary = (
-                                concise_course_dictionary_course_response(
-                                    course, request_url_string
-                                )
+                    if "::" in sanitized_course or (
+                        totalSubjectSearch and subject == sanitized_course_subject
+                    ):
+                        single_course_dictionary = (
+                            concise_course_dictionary_course_response(
+                                course, request_url_string
                             )
-                            if single_course_dictionary["course_offered"]:
-                                course_dictionary_list.append(single_course_dictionary)
-                            # return single_course_dictionary
+                        )
+                        if single_course_dictionary["course_offered"]:
+                            course_dictionary_list.append(single_course_dictionary)
+
                     else:
                         second_conditional = code == sanitized_course_code
                         if subject == sanitized_course_subject and second_conditional:
@@ -1104,7 +1104,8 @@ def xml_to_dictionary(**params):
                                 )
                             )
                             return single_course_dictionary
-    if totalSubjectSearch:
+
+    if totalSubjectSearch or "::" in sanitized_course:
         now = pendulum.now("America/Los_Angeles")
         time_generation_epoch = now.int_timestamp
         time_generation_readable = str(now.format("YYYY-MM-DD HH:mm"))
@@ -1126,8 +1127,11 @@ if __name__ == "__main__":
 
     params = {
         # "q": "EDUC101",  # no day time nor location
-        "academicYear": "20222023",
-        "q": "EDUC147",  # L or not L
+        # "academicYear": "20222023",
+        "academicYear": "20242025",
+        # "q": "EDUC147",  # L or not L
+        "q": "EDUC::LDT",  # L or not L
+        # "q": "EDUC147",  # L or not L
     }
 
     # params = {
