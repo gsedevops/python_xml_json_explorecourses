@@ -1120,6 +1120,141 @@ def xml_to_dictionary(**params):
         return dictionary
 
 
+def xml_to_dictionary_tagz(**params):
+    # https://stackoverflow.com/questions/15301999/default-arguments-with-args-and-kwargs
+    # https://stackoverflow.com/a/64926425
+    defaultParams = {
+        # "academicYear": "20222023",
+        # "academicYear": "20232024",
+        # "academicYear": "20242025",
+        "view": "xml-20200810",
+        "totalSubjectSearch": 0,
+    }
+
+    params = {**defaultParams, **params}
+    print("params")
+    print(params)
+
+    courseQueryName = params["q"]
+    totalSubjectSearch = params["totalSubjectSearch"]
+    sanitized_course = courseQueryName.replace("+", "").replace(" ", "")
+    dictionary = {
+        "subject": sanitized_course,
+        "course_offered": False,
+        "course_valid": False,
+    }
+
+    # if containsNumber(params["q"]) and not params["q"][0].isdigit():
+    response = requests.get("https://explorecourses.stanford.edu/search", params=params)
+    # request_url = response.url
+    # https://stackoverflow.com/questions/43607870/how-to-change-values-of-url-query-in-python
+    # https://github.com/gruns/furl
+    request_url = furl(response.url)
+    request_url.remove(["q"]).url
+    request_url.add({"q": sanitized_course}).url
+    request_url_string = str(request_url)
+
+    # print(response.content)
+    dict_data = xmltodict.parse(response.content)
+    print(dict_data)
+    print(json.dumps(dict_data, indent=2))
+
+    xml_string = response.content.decode("UTF-8")
+    document = parseString(xml_string)
+    set_id_attribute(document)
+    remove_whitespace(document)
+    document.normalize()
+
+    # print(document)
+
+    nList = document.getElementsByTagName("courses")
+    # print(nList)
+
+    course_dictionary_list = []
+    for cNode in nList:
+        if cNode.nodeType == Node.ELEMENT_NODE:
+            # print("helldasfo")
+            courses = cNode
+            cList = courses.getElementsByTagName("course")
+            # ensure cList not empty, valid response given from API call
+            if not cList:
+                # safeguard
+                return dictionary
+
+            my_str = sanitized_course
+
+            # https://bobbyhadz.com/blog/python-split-string-into-text-and-number
+            my_list = list(filter(None, re.split(r"(\d+)", my_str)))
+
+            sanitized_course_subject = my_list[0]
+            if len(my_list) > 2:
+                sanitized_course_code = my_list[1] + my_list[2]
+            elif len(my_list) == 2:
+                sanitized_course_code = my_list[1]
+            elif len(my_list) == 1:
+                sanitized_course_code = ""
+            # exit()
+
+            # cList_first_response = [cList[0]]
+            # print(cList)
+            #
+            # for nNode in cList_first_response:
+            for nNode in cList:
+
+                # adsf
+                if nNode.nodeType == Node.ELEMENT_NODE:
+                    # print(nNode)
+                    course = nNode
+                    # subject = code = ""
+                    if course.getElementsByTagName("subject")[0].firstChild:
+                        subject = course.getElementsByTagName("subject")[
+                            0
+                        ].firstChild.nodeValue
+                    if course.getElementsByTagName("code")[0].firstChild:
+                        code = course.getElementsByTagName("code")[
+                            0
+                        ].firstChild.nodeValue
+
+                    # print(subject)
+                    # print(code)
+                    # exit()
+
+                    if "::" in sanitized_course or (
+                        totalSubjectSearch and subject == sanitized_course_subject
+                    ):
+                        single_course_dictionary = (
+                            concise_course_dictionary_course_response(
+                                course, request_url_string
+                            )
+                        )
+                        if single_course_dictionary["course_offered"]:
+                            course_dictionary_list.append(single_course_dictionary)
+
+                    else:
+                        second_conditional = code == sanitized_course_code
+                        if subject == sanitized_course_subject and second_conditional:
+                            single_course_dictionary = (
+                                single_course_dictionary_course_response(
+                                    course, request_url_string
+                                )
+                            )
+                            return single_course_dictionary
+
+    if totalSubjectSearch or "::" in sanitized_course:
+        now = pendulum.now("America/Los_Angeles")
+        time_generation_epoch = now.int_timestamp
+        time_generation_readable = str(now.format("YYYY-MM-DD HH:mm"))
+        object = {
+            "cached_time_generation_epoch": time_generation_epoch,
+            "cached_time_generation_readable": time_generation_readable,
+            "course_dictionary_list": course_dictionary_list,
+            "course_count": len(course_dictionary_list),
+        }
+        return object
+    else:
+        return dictionary
+
+
 # json_object = json.dumps(dictionary, indent=2)
 # print(json_object)
 
@@ -1134,11 +1269,20 @@ if __name__ == "__main__":
         # "q": "EDUC147",  # L or not L
     }
 
+    params2 = {
+        # "q": "EDUC101",  # no day time nor location
+        # "academicYear": "20222023",
+        # "academicYear": "20242025",
+        # "q": "EDUC147",  # L or not L
+        "q": "EDUC::LDT",  # L or not L
+        # "q": "EDUC147",  # L or not L
+    }
+
     # params = {
     #    "q": "EDUC",
     #    "totalSubjectSearch": 1,
     # }
 
-    dictionary = xml_to_dictionary(**params)
+    dictionary = xml_to_dictionary_tagz(**params2)
     json_object = json.dumps(dictionary, indent=2)
     print(json_object)
