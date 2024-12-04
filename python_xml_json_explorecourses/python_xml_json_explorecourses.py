@@ -1512,7 +1512,7 @@ def xml_to_dictionary(**params):
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
                         single_course_dictionary = (
-                            concise_course_dictionary_course_response_wilson(
+                            concise_course_dictionary_course_response(
                                 course, request_url_string
                             )
                         )
@@ -1556,8 +1556,6 @@ def xml_to_dictionary_tagz(**params):
     }
 
     params = {**defaultParams, **params}
-    print("params")
-    print(params)
 
     courseQueryName = params["q"]
     totalSubjectSearch = params["totalSubjectSearch"]
@@ -1647,12 +1645,13 @@ def xml_to_dictionary_tagz(**params):
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
                         single_course_dictionary = (
-                            concise_course_dictionary_course_response(
+                            concise_course_dictionary_course_response_wilson(
                                 course, request_url_string
                             )
                         )
-                        if single_course_dictionary["course_offered"]:
-                            course_dictionary_list.append(single_course_dictionary)
+                        # if single_course_dictionary["course_offered"]:
+                        #    course_dictionary_list.append(single_course_dictionary)
+                        course_dictionary_list.append(single_course_dictionary)
 
                     else:
                         second_conditional = code == sanitized_course_code
