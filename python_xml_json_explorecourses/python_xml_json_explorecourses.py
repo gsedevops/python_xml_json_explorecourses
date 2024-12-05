@@ -987,18 +987,20 @@ def concise_course_dictionary_course_response(course, request_url_string):
     return dictionary
 
 
-def concise_course_dictionary_course_response_wilson(course, request_url_string):
+def concise_course_dictionary_course_response_educ_main_website(
+    course, request_url_string
+):
     code = section_units = subject = title = ""
 
     instructors_list = []
     instructors_list_global = []
-    z_tags_list = []
-    z_tempSectionsList = []
+    tags_list = []
+    tempSectionsList = []
 
     code = course.getElementsByTagName("code")[0].firstChild.nodeValue
     subject = course.getElementsByTagName("subject")[0].firstChild.nodeValue
     title = course.getElementsByTagName("title")[0].firstChild.nodeValue
-    z_title = f"{subject}{code}: {title}"
+    verbose_title = f"{subject}{code}: {title}"
 
     sectionsList = course.getElementsByTagName("sections")
     for sectionsNode in sectionsList:
@@ -1068,10 +1070,10 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                         ].firstChild.nodeValue
 
                         for instructor in instructors_list:
-                            z_text = (
+                            section_text = (
                                 f"Offered in {term} ({instructor}) ({section_units})"
                             )
-                            z_tempSectionsList.append(z_text)
+                            tempSectionsList.append(section_text)
 
     tagsList = course.getElementsByTagName("tags")
     for tagsNode in tagsList:
@@ -1089,7 +1091,7 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                     if organization == "EDUC":
                         # print(name)
                         local_tag = f"{organization}::{name}"
-                        z_tags_list.append(local_tag)
+                        tags_list.append(local_tag)
 
     request_url_temp = furl(request_url_string)
     request_url_temp.remove(["totalSubjectSearch"]).url
@@ -1097,16 +1099,14 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
     request_url_temp.add({"q": subject + code}).url
     request_url_string_new = str(request_url_temp)
 
-    z_explorecourses_url = request_url_string_new.replace(
-        "&view=xml-20200810", "catalog"
-    )
+    explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
 
     dictionary = {
-        "z_title": z_title,
-        "z_sections": z_tempSectionsList,
-        "z_explorecourses_url": z_explorecourses_url,
-        "z_course_offered": len(z_tempSectionsList) > 0,
-        "z_tags": z_tags_list,
+        "title": verbose_title,
+        "sections": tempSectionsList,
+        "explorecourses_url": explorecourses_url,
+        "course_offered": len(tempSectionsList) > 0,
+        "tags": tags_list,
     }
 
     return dictionary
@@ -1341,7 +1341,7 @@ def xml_to_dictionary_tagz(**params):
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
                         single_course_dictionary = (
-                            concise_course_dictionary_course_response_wilson(
+                            concise_course_dictionary_course_response_educ_main_website(
                                 course, request_url_string
                             )
                         )
