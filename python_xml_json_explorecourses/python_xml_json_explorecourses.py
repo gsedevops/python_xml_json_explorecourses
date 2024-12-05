@@ -988,50 +988,18 @@ def concise_course_dictionary_course_response(course, request_url_string):
 
 
 def concise_course_dictionary_course_response_wilson(course, request_url_string):
-    code = days = description = endTime = format_of_course = grading = location = (
-        section_units
-    ) = startTime = subject = title = unitsMin = unitsMax = year = ""
+    code = section_units = subject = title = ""
 
-    course_times_list_global = []
-    days_list_global = []
     instructors_list = []
     instructors_list_global = []
-    tags_list = []
     z_tags_list = []
-    term_list = []
-    tempSectionsList = []
     z_tempSectionsList = []
-    units_range = []
 
     code = course.getElementsByTagName("code")[0].firstChild.nodeValue
     subject = course.getElementsByTagName("subject")[0].firstChild.nodeValue
-
-    year = course.getElementsByTagName("year")[0].firstChild.nodeValue
     title = course.getElementsByTagName("title")[0].firstChild.nodeValue
     z_title = f"{subject}{code}: {title}"
-    # description = course.getElementsByTagName("description")[0].firstChild.nodeValue
-    if course.getElementsByTagName("description")[0]:
-        if course.getElementsByTagName("description")[0].firstChild:
-            description = course.getElementsByTagName("description")[
-                0
-            ].firstChild.nodeValue
-        else:
-            description = ""
-    else:
-        description = ""
 
-    grading = course.getElementsByTagName("grading")[0].firstChild.nodeValue
-    # print("*")
-    # print()
-    # print("Subject: " + subject)
-    # print("code: " + code)
-    # print("title: " + title)
-    # print("year: " + year)
-    # print("grading: " + grading)
-    # print("*")
-    # print("description: " + description)
-    # print("*")
-    # print()
     sectionsList = course.getElementsByTagName("sections")
     for sectionsNode in sectionsList:
         if sectionsNode.nodeType == Node.ELEMENT_NODE:
@@ -1039,16 +1007,11 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
             sList = sections.getElementsByTagName("section")
 
             for sNode in sList:
-                tempSection = {}
                 if sNode.nodeType == Node.ELEMENT_NODE:
                     # reset the instructors list
                     instructors_list = []
-
                     section = sNode
-
                     term = section.getElementsByTagName("term")[0].firstChild.nodeValue
-                    tempSection["term"] = term
-
                     schedulesList = section.getElementsByTagName("schedules")
                     for schedulesNode in schedulesList:
                         if schedulesNode.nodeType == Node.ELEMENT_NODE:
@@ -1105,7 +1068,9 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                         ].firstChild.nodeValue
 
                         for instructor in instructors_list:
-                            z_text = f"Offered in {tempSection['term']} ({instructor}) ({section_units})"
+                            z_text = (
+                                f"Offered in {term} ({instructor}) ({section_units})"
+                            )
                             z_tempSectionsList.append(z_text)
 
     tagsList = course.getElementsByTagName("tags")
@@ -1123,11 +1088,8 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                     ].firstChild.nodeValue
                     if organization == "EDUC":
                         # print(name)
-                        tags_list.append(name)
                         local_tag = f"{organization}::{name}"
                         z_tags_list.append(local_tag)
-                    elif organization == "CARDCOURSES" and name == "educ":
-                        tags_list.append(organization)
 
     request_url_temp = furl(request_url_string)
     request_url_temp.remove(["totalSubjectSearch"]).url
@@ -1366,7 +1328,6 @@ def xml_to_dictionary_tagz(**params):
                 if nNode.nodeType == Node.ELEMENT_NODE:
                     # print(nNode)
                     course = nNode
-                    # subject = code = ""
                     if course.getElementsByTagName("subject")[0].firstChild:
                         subject = course.getElementsByTagName("subject")[
                             0
@@ -1375,10 +1336,6 @@ def xml_to_dictionary_tagz(**params):
                         code = course.getElementsByTagName("code")[
                             0
                         ].firstChild.nodeValue
-
-                    # print(subject)
-                    # print(code)
-                    # exit()
 
                     if "::" in sanitized_course or (
                         totalSubjectSearch and subject == sanitized_course_subject
