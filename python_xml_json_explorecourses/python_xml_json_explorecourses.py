@@ -997,8 +997,10 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
     instructors_list = []
     instructors_list_global = []
     tags_list = []
+    z_tags_list = []
     term_list = []
     tempSectionsList = []
+    z_tempSectionsList = []
     units_range = []
 
     code = course.getElementsByTagName("code")[0].firstChild.nodeValue
@@ -1006,6 +1008,7 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
 
     year = course.getElementsByTagName("year")[0].firstChild.nodeValue
     title = course.getElementsByTagName("title")[0].firstChild.nodeValue
+    z_title = f"{subject}{code}: {title}"
     # description = course.getElementsByTagName("description")[0].firstChild.nodeValue
     if course.getElementsByTagName("description")[0]:
         if course.getElementsByTagName("description")[0].firstChild:
@@ -1242,6 +1245,9 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                     # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                     if "section_units" in tempSection:
                         tempSectionsList.append(tempSection)
+                        for instructor in instructors_list:
+                            z_text = f"Offered in {tempSection['term']} ({instructor}) ({tempSection['section_units']})"
+                            z_tempSectionsList.append(z_text)
                     # print(tempSectionsList)
             temp_term_list = []
             for item in term_list:
@@ -1273,6 +1279,8 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
                         tags_list.append(name)
                     elif organization == "CARDCOURSES" and name == "educ":
                         tags_list.append(organization)
+                    local_tag = f"{organization}::{name}"
+                    z_tags_list.append(local_tag)
 
     if len(instructors_list_global) > 0:
         # remove duplicates
@@ -1365,6 +1373,9 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
     request_url_string_new = str(request_url_temp)
 
     explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
+    z_explorecourses_url = request_url_string_new.replace(
+        "&view=xml-20200810", "catalog"
+    )
     if explorecourses_url and subject == "EDUC":
         coursediscovery_url = f"https://coursediscovery.gse.stanford.edu/node/courses/{subject.lower()}-{code.lower()}-2024-2025"
     else:
@@ -1396,6 +1407,11 @@ def concise_course_dictionary_course_response_wilson(course, request_url_string)
         "section_count": len(tempSectionsList),
         "course_offered": len(tempSectionsList) > 0,
         "course_valid": type(len(tempSectionsList)) == int,
+        "z_title": z_title,
+        "z_sections": z_tempSectionsList,
+        "z_explorecourses_url": z_explorecourses_url,
+        "z_course_offered": len(z_tempSectionsList) > 0,
+        "z_tags": z_tags_list,
     }
 
     dictionary["program"] = []
