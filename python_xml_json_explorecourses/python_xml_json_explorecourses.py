@@ -1283,7 +1283,7 @@ def xml_to_dictionary_exclusively_tags_search(**params):
             courses = cNode
             cList = courses.getElementsByTagName("course")
             if not cList:
-                return dictionary
+                return {}
 
             for nNode in cList:
                 if nNode.nodeType == Node.ELEMENT_NODE:
