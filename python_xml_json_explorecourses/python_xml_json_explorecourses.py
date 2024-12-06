@@ -1001,6 +1001,7 @@ def concise_course_dictionary_course_response_educ_main_website(
     subject = course.getElementsByTagName("subject")[0].firstChild.nodeValue
     title = course.getElementsByTagName("title")[0].firstChild.nodeValue
     verbose_title = f"{subject}{code}: {title}"
+    concise_title = f"{subject}{code}"
 
     sectionsList = course.getElementsByTagName("sections")
     for sectionsNode in sectionsList:
@@ -1103,6 +1104,7 @@ def concise_course_dictionary_course_response_educ_main_website(
 
     dictionary = {
         "title": verbose_title,
+        "concise_title": concise_title,
         "sections": tempSectionsList,
         "explorecourses_url": explorecourses_url,
         "course_offered": len(tempSectionsList) > 0,
