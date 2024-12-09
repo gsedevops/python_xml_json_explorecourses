@@ -995,7 +995,7 @@ def concise_course_dictionary_course_response(course, request_url_string):
 
 
 def concise_course_dictionary_course_response_educ_main_website(
-    course, request_url_string, response
+    course, request_url_string
 ):
     code = section_units = subject = title = ""
 
@@ -1016,107 +1016,115 @@ def concise_course_dictionary_course_response_educ_main_website(
             sections = sectionsNode
             sList = sections.getElementsByTagName("section")
 
-            for sNode in sList:
-                if sNode.nodeType == Node.ELEMENT_NODE:
-                    # reset the instructors list
-                    instructors_list = []
-                    section = sNode
-                    term = section.getElementsByTagName("term")[0].firstChild.nodeValue
-                    schedulesList = section.getElementsByTagName("schedules")
-                    for schedulesNode in schedulesList:
-                        if schedulesNode.nodeType == Node.ELEMENT_NODE:
-                            schedules = schedulesNode
-                            schedList = schedules.getElementsByTagName("schedule")
-
-                            for schedNode in schedList:
-                                if schedNode.nodeType == Node.ELEMENT_NODE:
-                                    schedule = schedNode
-
-                                    instructorsList = schedule.getElementsByTagName(
-                                        "instructors"
-                                    )
-                                    for instructorsNode in instructorsList:
-                                        if (
-                                            instructorsNode.nodeType
-                                            == Node.ELEMENT_NODE
-                                        ):
-                                            instructors = instructorsNode
-                                            instructorList = (
-                                                instructors.getElementsByTagName(
-                                                    "instructor"
-                                                )
-                                            )
-
-                                            for instructorNode in instructorList:
-                                                if (
-                                                    instructorNode.nodeType
-                                                    == Node.ELEMENT_NODE
-                                                ):
-                                                    instructor = instructorNode
-                                                    first_name = (
-                                                        instructor.getElementsByTagName(
-                                                            "firstName"
-                                                        )[0].firstChild.nodeValue
-                                                    )
-                                                    last_name = (
-                                                        instructor.getElementsByTagName(
-                                                            "lastName"
-                                                        )[0].firstChild.nodeValue
-                                                    )
-                                                    instructor_name = f"{first_name.title()} {last_name.title()}"
-                                                    # print("instructor_name")
-                                                    instructors_list.append(
-                                                        instructor_name
-                                                    )
-                                                    instructors_list_global.append(
-                                                        instructor_name
-                                                    )
-                    if section.getElementsByTagName("units")[0].firstChild:
-
-                        section_units = section.getElementsByTagName("units")[
+            if sList:
+                for sNode in sList:
+                    if sNode.nodeType == Node.ELEMENT_NODE:
+                        # reset the instructors list
+                        instructors_list = []
+                        section = sNode
+                        term = section.getElementsByTagName("term")[
                             0
                         ].firstChild.nodeValue
+                        schedulesList = section.getElementsByTagName("schedules")
+                        for schedulesNode in schedulesList:
+                            if schedulesNode.nodeType == Node.ELEMENT_NODE:
+                                schedules = schedulesNode
+                                schedList = schedules.getElementsByTagName("schedule")
 
-                        for instructor in instructors_list:
-                            section_text = (
-                                f"Offered in {term} ({instructor}) ({section_units})"
-                            )
-                            tempSectionsList.append(section_text)
-                        if len(instructors_list) > 0:
-                            # reformat the sections list to make it more concise and sorted according to quarters
-                            grouped_sections = defaultdict(
-                                lambda: {"instructors": set(), "units": None}
-                            )
+                                for schedNode in schedList:
+                                    if schedNode.nodeType == Node.ELEMENT_NODE:
+                                        schedule = schedNode
 
-                            for section in tempSectionsList:
-                                semester, rest = section.split("(", 1)
-                                semester = semester.strip()
-                                instructor, units = rest.split(") (")
-                                instructor = instructor.strip("()")
-                                units = units.strip("()")
-                                grouped_sections[semester]["instructors"].add(
-                                    instructor
+                                        instructorsList = schedule.getElementsByTagName(
+                                            "instructors"
+                                        )
+                                        for instructorsNode in instructorsList:
+                                            if (
+                                                instructorsNode.nodeType
+                                                == Node.ELEMENT_NODE
+                                            ):
+                                                instructors = instructorsNode
+                                                instructorList = (
+                                                    instructors.getElementsByTagName(
+                                                        "instructor"
+                                                    )
+                                                )
+
+                                                for instructorNode in instructorList:
+                                                    if (
+                                                        instructorNode.nodeType
+                                                        == Node.ELEMENT_NODE
+                                                    ):
+                                                        instructor = instructorNode
+                                                        first_name = instructor.getElementsByTagName(
+                                                            "firstName"
+                                                        )[
+                                                            0
+                                                        ].firstChild.nodeValue
+                                                        last_name = instructor.getElementsByTagName(
+                                                            "lastName"
+                                                        )[
+                                                            0
+                                                        ].firstChild.nodeValue
+                                                        instructor_name = f"{first_name.title()} {last_name.title()}"
+                                                        # print("instructor_name")
+                                                        instructors_list.append(
+                                                            instructor_name
+                                                        )
+                                                        instructors_list_global.append(
+                                                            instructor_name
+                                                        )
+                        if section.getElementsByTagName("units")[0].firstChild:
+
+                            section_units = section.getElementsByTagName("units")[
+                                0
+                            ].firstChild.nodeValue
+
+                            for instructor in instructors_list:
+                                section_text = f"Offered in {term} ({instructor}) ({section_units})"
+                                tempSectionsList.append(section_text)
+
+                            if len(instructors_list) > 0:
+                                # reformat the sections list to make it more concise and sorted according to quarters
+                                grouped_sections = defaultdict(
+                                    lambda: {"instructors": set(), "units": None}
                                 )
-                                grouped_sections[semester]["units"] = units
 
-                            tempSectionsList = sorted(
-                                [
-                                    f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
-                                    for semester, info in grouped_sections.items()
-                                ],
-                                key=quarter_sort_key,
-                            )
+                                for section in tempSectionsList:
+                                    semester, rest = section.split("(", 1)
+                                    semester = semester.strip()
+                                    instructor, units = rest.split(") (")
+                                    instructor = instructor.strip("()")
+                                    units = units.strip("()")
+                                    grouped_sections[semester]["instructors"].add(
+                                        instructor
+                                    )
+                                    grouped_sections[semester]["units"] = units
 
-    # if concise_title == "FEMGEN344F":
-    if concise_title == "BIOE177":
-        print("hi")
-        print(tempSectionsList)
-        dict_data = xmltodict.parse(response.content)
-        # print(dict_data)
-        print(json.dumps(dict_data, indent=2))
-        print("sectionsList")
-        print(sectionsList)
-        exit()
+                                tempSectionsList = sorted(
+                                    [
+                                        f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
+                                        for semester, info in grouped_sections.items()
+                                    ],
+                                    key=quarter_sort_key,
+                                )
+                            else:
+                                section = sList[0]
+                                term = section.getElementsByTagName("term")[
+                                    0
+                                ].firstChild.nodeValue
+
+                                notes = ""
+                                notes_elements = section.getElementsByTagName("notes")
+                                if notes_elements and notes_elements[0].firstChild:
+                                    notes = notes_elements[0].firstChild.nodeValue
+                                if "cancel" in notes.lower():
+                                    section_text = f"Offered in {term} (Cancelled) ({section_units})"
+                                else:
+                                    section_text = f"Offered in {term} (Instructor TBD) ({section_units})"
+                                tempSectionsList = [section_text]
+            else:
+                tempSectionsList = []
 
     tagsList = course.getElementsByTagName("tags")
     for tagsNode in tagsList:
@@ -1143,27 +1151,6 @@ def concise_course_dictionary_course_response_educ_main_website(
     request_url_string_new = str(request_url_temp)
 
     explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
-
-    # if len(tempSectionsList) > 0:
-    #     # reformat the sections list to make it more concise and sorted according to quarters
-    #     grouped_sections = defaultdict(lambda: {"instructors": set(), "units": None})
-
-    #     for section in tempSectionsList:
-    #         semester, rest = section.split("(", 1)
-    #         semester = semester.strip()
-    #         instructor, units = rest.split(") (")
-    #         instructor = instructor.strip("()")
-    #         units = units.strip("()")
-    #         grouped_sections[semester]["instructors"].add(instructor)
-    #         grouped_sections[semester]["units"] = units
-
-    #     tempSectionsList = sorted(
-    #         [
-    #             f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
-    #             for semester, info in grouped_sections.items()
-    #         ],
-    #         key=quarter_sort_key,
-    #     )
 
     dictionary = {
         "title": verbose_title,
@@ -1358,7 +1345,7 @@ def xml_to_dictionary_exclusively_tags_search(**params):
                     course = nNode
                     single_course_dictionary = (
                         concise_course_dictionary_course_response_educ_main_website(
-                            course, request_url_string, response
+                            course, request_url_string
                         )
                     )
                     course_dictionary_list.append(single_course_dictionary)
