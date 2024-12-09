@@ -6,7 +6,7 @@ import re
 import requests
 import xmltodict  # for troubleshooting
 
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from furl import furl
 from xml.dom.minidom import parseString, Node
 
@@ -201,6 +201,13 @@ def quarter_priority(element):
     if "Summer" in element:
         return -2
     return ord(element)
+
+
+def quarter_sort_key(element):
+    # Extract only the quarter part from the element
+    # used for sorting sections for the explorecourses tagged search
+    quarter_part = element.split("(")[0].strip()
+    return quarter_priority(quarter_part)
 
 
 def quarter_priority_nested(element):
@@ -1101,6 +1108,27 @@ def concise_course_dictionary_course_response_educ_main_website(
     request_url_string_new = str(request_url_temp)
 
     explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
+
+    if len(tempSectionsList) > 0:
+        # reformat the sections list to make it more concise and sorted according to quarters
+        grouped_sections = defaultdict(lambda: {"instructors": set(), "units": None})
+
+        for section in tempSectionsList:
+            semester, rest = section.split("(", 1)
+            semester = semester.strip()
+            instructor, units = rest.split(") (")
+            instructor = instructor.strip("()")
+            units = units.strip("()")
+            grouped_sections[semester]["instructors"].add(instructor)
+            grouped_sections[semester]["units"] = units
+
+        tempSectionsList = sorted(
+            [
+                f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
+                for semester, info in grouped_sections.items()
+            ],
+            key=quarter_sort_key,
+        )
 
     dictionary = {
         "title": verbose_title,
