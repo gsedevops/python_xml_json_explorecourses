@@ -995,7 +995,7 @@ def concise_course_dictionary_course_response(course, request_url_string):
 
 
 def concise_course_dictionary_course_response_educ_main_website(
-    course, request_url_string
+    course, request_url_string, response
 ):
     code = section_units = subject = title = ""
 
@@ -1082,6 +1082,41 @@ def concise_course_dictionary_course_response_educ_main_website(
                                 f"Offered in {term} ({instructor}) ({section_units})"
                             )
                             tempSectionsList.append(section_text)
+                        if len(instructors_list) > 0:
+                            # reformat the sections list to make it more concise and sorted according to quarters
+                            grouped_sections = defaultdict(
+                                lambda: {"instructors": set(), "units": None}
+                            )
+
+                            for section in tempSectionsList:
+                                semester, rest = section.split("(", 1)
+                                semester = semester.strip()
+                                instructor, units = rest.split(") (")
+                                instructor = instructor.strip("()")
+                                units = units.strip("()")
+                                grouped_sections[semester]["instructors"].add(
+                                    instructor
+                                )
+                                grouped_sections[semester]["units"] = units
+
+                            tempSectionsList = sorted(
+                                [
+                                    f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
+                                    for semester, info in grouped_sections.items()
+                                ],
+                                key=quarter_sort_key,
+                            )
+
+    # if concise_title == "FEMGEN344F":
+    if concise_title == "BIOE177":
+        print("hi")
+        print(tempSectionsList)
+        dict_data = xmltodict.parse(response.content)
+        # print(dict_data)
+        print(json.dumps(dict_data, indent=2))
+        print("sectionsList")
+        print(sectionsList)
+        exit()
 
     tagsList = course.getElementsByTagName("tags")
     for tagsNode in tagsList:
@@ -1109,33 +1144,33 @@ def concise_course_dictionary_course_response_educ_main_website(
 
     explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
 
-    if len(tempSectionsList) > 0:
-        # reformat the sections list to make it more concise and sorted according to quarters
-        grouped_sections = defaultdict(lambda: {"instructors": set(), "units": None})
+    # if len(tempSectionsList) > 0:
+    #     # reformat the sections list to make it more concise and sorted according to quarters
+    #     grouped_sections = defaultdict(lambda: {"instructors": set(), "units": None})
 
-        for section in tempSectionsList:
-            semester, rest = section.split("(", 1)
-            semester = semester.strip()
-            instructor, units = rest.split(") (")
-            instructor = instructor.strip("()")
-            units = units.strip("()")
-            grouped_sections[semester]["instructors"].add(instructor)
-            grouped_sections[semester]["units"] = units
+    #     for section in tempSectionsList:
+    #         semester, rest = section.split("(", 1)
+    #         semester = semester.strip()
+    #         instructor, units = rest.split(") (")
+    #         instructor = instructor.strip("()")
+    #         units = units.strip("()")
+    #         grouped_sections[semester]["instructors"].add(instructor)
+    #         grouped_sections[semester]["units"] = units
 
-        tempSectionsList = sorted(
-            [
-                f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
-                for semester, info in grouped_sections.items()
-            ],
-            key=quarter_sort_key,
-        )
+    #     tempSectionsList = sorted(
+    #         [
+    #             f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
+    #             for semester, info in grouped_sections.items()
+    #         ],
+    #         key=quarter_sort_key,
+    #     )
 
     dictionary = {
         "title": verbose_title,
         "concise_title": concise_title,
         "sections": tempSectionsList,
         "explorecourses_url": explorecourses_url,
-        "course_offered": len(tempSectionsList) > 0,
+        # "course_offered": len(tempSectionsList) > 0,
         "tags": tags_list,
     }
 
@@ -1303,6 +1338,11 @@ def xml_to_dictionary_exclusively_tags_search(**params):
     remove_whitespace(document)
     document.normalize()
 
+    # print(response.content)
+    dict_data = xmltodict.parse(response.content)
+    # print(dict_data)
+    # print(json.dumps(dict_data, indent=2))
+
     nList = document.getElementsByTagName("courses")
 
     course_dictionary_list = []
@@ -1318,7 +1358,7 @@ def xml_to_dictionary_exclusively_tags_search(**params):
                     course = nNode
                     single_course_dictionary = (
                         concise_course_dictionary_course_response_educ_main_website(
-                            course, request_url_string
+                            course, request_url_string, response
                         )
                     )
                     course_dictionary_list.append(single_course_dictionary)
@@ -1347,6 +1387,7 @@ if __name__ == "__main__":
         "academicYear": "20242025",
         # "q": "EDUC147",  # L or not L
         "q": "EDUC::POLS",  # L or not L
+        "q": "EDUC::LDT",  # L or not L
         # "q": "EDUC147",  # L or not L
     }
 
