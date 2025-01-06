@@ -210,6 +210,13 @@ def quarter_sort_key(element):
     return quarter_priority(quarter_part)
 
 
+# importance to PIs over TAs
+def sort_instructors(instructors_info):
+    pis = sorted([i for i, r in instructors_info if r == "PI"])
+    tas = sorted([i for i, r in instructors_info if r == "TA"])
+    return pis + tas
+
+
 def quarter_priority_nested(element):
     season = element["term"]
     if element["sectionNumber"]:
@@ -423,8 +430,9 @@ def single_course_dictionary_course_response(course, request_url_string):
                                                             "lastName"
                                                         )[0].firstChild.nodeValue
                                                     )
-                                                    instructor_name = f"{first_name.title()} {last_name.title()}"
-                                                    # print("instructor_name")
+                                                    instructor_name = (
+                                                        f"{first_name} {last_name}"
+                                                    )
                                                     instructors_list.append(
                                                         instructor_name
                                                     )
@@ -799,8 +807,9 @@ def concise_course_dictionary_course_response(course, request_url_string):
                                                             "lastName"
                                                         )[0].firstChild.nodeValue
                                                     )
-                                                    instructor_name = f"{first_name.title()} {last_name.title()}"
-                                                    # print("instructor_name")
+                                                    instructor_name = (
+                                                        f"{first_name} {last_name}"
+                                                    )
                                                     instructors_list.append(
                                                         instructor_name
                                                     )
@@ -1066,48 +1075,74 @@ def concise_course_dictionary_course_response_educ_main_website(
                                                         )[
                                                             0
                                                         ].firstChild.nodeValue
-                                                        instructor_name = f"{first_name.title()} {last_name.title()}"
-                                                        # print("instructor_name")
+                                                        role = instructor.getElementsByTagName(
+                                                            "role"
+                                                        )[
+                                                            0
+                                                        ].firstChild.nodeValue
+
+                                                        instructor_name = (
+                                                            f"{first_name} {last_name}"
+                                                        )
+
+                                                        local_instructor_object = {
+                                                            "instructor_name": instructor_name,
+                                                            "instructor_role": role,
+                                                        }
+                                                        # instructors_list.append(
+                                                        #    instructor_name
+                                                        # )
+                                                        # optimization to later put in the instructors_list_global
                                                         instructors_list.append(
-                                                            instructor_name
+                                                            local_instructor_object
                                                         )
                                                         instructors_list_global.append(
                                                             instructor_name
                                                         )
                         if section.getElementsByTagName("units")[0].firstChild:
 
+                            temp_sections = []
                             section_units = section.getElementsByTagName("units")[
                                 0
                             ].firstChild.nodeValue
-
                             for instructor in instructors_list:
-                                section_text = f"Offered in {term} ({instructor}) ({section_units})"
-                                tempSectionsList.append(section_text)
+                                instructor_name = instructor["instructor_name"]
+                                instructor_role = instructor["instructor_role"]
 
-                            if len(instructors_list) > 0:
-                                # reformat the sections list to make it more concise and sorted according to quarters
+                                # Create a structured dictionary instead of a string
+                                section_info = {
+                                    "instructor": instructor_name,
+                                    "role": instructor_role,
+                                    "term": term,
+                                    "units": section_units,
+                                }
+                                temp_sections.append(section_info)
+
+                            if temp_sections:
                                 grouped_sections = defaultdict(
-                                    lambda: {"instructors": set(), "units": None}
+                                    lambda: {"instructors": [], "units": None}
                                 )
+                                for section in temp_sections:
+                                    semester = section["term"]
+                                    instructor = section["instructor"]
+                                    units = section["units"]
+                                    role = section["role"]
 
-                                for section in tempSectionsList:
-                                    semester, rest = section.split("(", 1)
-                                    semester = semester.strip()
-                                    instructor, units = rest.split(") (")
-                                    instructor = instructor.strip("()")
-                                    units = units.strip("()")
-                                    grouped_sections[semester]["instructors"].add(
-                                        instructor
+                                    grouped_sections[semester]["instructors"].append(
+                                        (instructor, role)
                                     )
                                     grouped_sections[semester]["units"] = units
 
-                                tempSectionsList = sorted(
-                                    [
-                                        f"{semester} ({', '.join(sorted(info['instructors']))}) ({info['units']})"
-                                        for semester, info in grouped_sections.items()
-                                    ],
-                                    key=quarter_sort_key,
-                                )
+                                for semester, info in grouped_sections.items():
+                                    sorted_instructors = sort_instructors(
+                                        info["instructors"]
+                                    )
+                                    tempSectionsList.append(
+                                        f"Offered in {semester} ({', '.join(sorted_instructors)}) ({info['units']})"
+                                    )
+
+                                tempSectionsList.sort(key=quarter_sort_key)
+
                             else:
                                 section = sList[0]
                                 term = section.getElementsByTagName("term")[
@@ -1364,8 +1399,8 @@ if __name__ == "__main__":
         # "academicYear": "20222023",
         "academicYear": "20242025",
         # "q": "EDUC147",  # L or not L
-        "q": "EDUC::LDT",  # L or not L
-        # "q": "EDUC147",  # L or not L
+        "q": "EDUC368",  # L or not L
+        "q": "EDUC271",  # L or not L
     }
 
     params2 = {
@@ -1373,8 +1408,9 @@ if __name__ == "__main__":
         # "academicYear": "20222023",
         "academicYear": "20242025",
         # "q": "EDUC147",  # L or not L
-        "q": "EDUC::POLS",  # L or not L
+        # "q": "EDUC::POLS",  # L or not L
         "q": "EDUC::LDT",  # L or not L
+        "q": "EDUC::DAPS",  # L or not L
         # "q": "EDUC147",  # L or not L
     }
 
@@ -1383,6 +1419,17 @@ if __name__ == "__main__":
     #    "totalSubjectSearch": 1,
     # }
 
+    # testing tags of EDUC::LDT POLS
     dictionary = xml_to_dictionary_exclusively_tags_search(**params2)
+
+    # testing EDUC total subject search
+    # params = {
+    #    "academicYear": "20242025",
+    #    "view": "xml-20200810",
+    #    "totalSubjectSearch": 1,
+    #    "q": "EDUC",
+    # }
+    # dictionary = xml_to_dictionary(**params)
+
     json_object = json.dumps(dictionary, indent=2)
     print(json_object)
