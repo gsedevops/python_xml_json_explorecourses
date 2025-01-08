@@ -1,4 +1,6 @@
+import gzip
 import itertools
+import io
 import json
 import pandas as pd
 import pendulum
@@ -1390,6 +1392,43 @@ def xml_to_dictionary_exclusively_tags_search(**params):
         "course_count": len(course_dictionary_list),
     }
     return object
+
+
+def validate_academic_year(year_str):
+    return (
+        len(year_str) == 8
+        and year_str.isdigit()
+        and int(year_str[4:]) == int(year_str[:4]) + 1
+    )
+
+
+# https://gist.github.com/earthastronaut/8bfcc462e88adbab5bbf3f18106daaf8
+def to_gzipped_bytes(string, encoding="utf-8", **kws):
+    """Take a string and return the bytes for a gzip file of the string
+    Parameters
+        string (str): string to write out
+        encoding (str): encoding to use when writing
+        **kws: passed to gzip.GzipFile(**kws)
+    Returns
+        bytes: gzip compressed version of string
+    >>> string = 'hello world'
+    >>> sbytes = to_gzipped_bytes(string)
+    >>> with open('file.txt.gz', 'wb') as f:
+    >>>     f.write(sbytes)
+
+    """
+    fileobj = io.BytesIO()
+
+    kws["fileobj"] = fileobj
+    kws.setdefault("mode", "wb")
+    # https://stackoverflow.com/questions/28452429/does-gzip-compression-level-have-any-impact-on-decompression
+    kws.setdefault("compresslevel", 9)
+
+    gzf = gzip.GzipFile(**kws)
+    gzf.write(string.encode(encoding))
+    gzf.close()
+
+    return fileobj.getvalue()
 
 
 if __name__ == "__main__":
