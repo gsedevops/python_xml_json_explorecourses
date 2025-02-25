@@ -1098,6 +1098,44 @@ def concise_course_dictionary_course_response_flattened_sections(
     # print("description: " + description)
     # print("*")
     # print()
+    #
+    dictionary = {
+        "subject": subject,
+        "code": code,
+        "title": title,
+        "year": year,
+        "grading": grading,
+        "description": description,
+        "tags": tags_string,
+        "explorecourses_url": explorecourses_url,
+        "explorecourses_xml": request_url_string_new,
+        "coursediscovery_url": coursediscovery_url,
+        # "term": term,
+        # "term_exclusive": term_exclusive,
+        # "format_of_course": format_of_course,
+        # "section_units": section_units,
+        # "units_range": units_range,
+        # "unitsMin": unitsMin,
+        # "unitsMax": unitsMax,
+        # "days": days_list_global,
+        # "course_times": course_times_list_global,
+        # "course_times_availability": course_times_availability,
+        # "instructors": instructors_list_global,
+        # "sections": tempSectionsList,
+        # "section_count": len(tempSectionsList),
+        # "course_offered": len(tempSectionsList) > 0,
+        # "course_valid": type(len(tempSectionsList)) == int,
+    }
+    dictionary["program"] = []
+    dictionary["category"] = []
+    dictionary["audience"] = []
+    if resultant_program_list:
+        dictionary["program"] = resultant_program_list
+    if resultant_category_list:
+        dictionary["category"] = resultant_category_list
+    if resultant_audience_list:
+        dictionary["audience"] = resultant_audience_list
+
     sectionsList = course.getElementsByTagName("sections")
     for sectionsNode in sectionsList:
         if sectionsNode.nodeType == Node.ELEMENT_NODE:
@@ -1162,7 +1200,7 @@ def concise_course_dictionary_course_response_flattened_sections(
                         # print("section_units: " + section_units)
                         schedulesList = section.getElementsByTagName("schedules")
                         for schedulesNode in schedulesList:
-                            print(" *  scheduleNode  * ")
+                            # print(" *  scheduleNode  * ")
                             if schedulesNode.nodeType == Node.ELEMENT_NODE:
                                 schedules = schedulesNode
                                 schedList = schedules.getElementsByTagName("schedule")
@@ -1393,43 +1431,21 @@ def concise_course_dictionary_course_response_flattened_sections(
     #        reverse=False,
     #    )
 
-    dictionary = {
-        "subject": subject,
-        "code": code,
-        "title": title,
-        "year": year,
-        "grading": grading,
-        "description": description,
-        "term": term,
-        "term_exclusive": term_exclusive,
-        "format_of_course": format_of_course,
-        "section_units": section_units,
-        "units_range": units_range,
-        "unitsMin": unitsMin,
-        "unitsMax": unitsMax,
-        "days": days_list_global,
-        "course_times": course_times_list_global,
-        "course_times_availability": course_times_availability,
-        "instructors": instructors_list_global,
-        "tags": tags_string,
-        "sections": tempSectionsList,
-        "explorecourses_url": explorecourses_url,
-        "explorecourses_xml": request_url_string_new,
-        "coursediscovery_url": coursediscovery_url,
-        "section_count": len(tempSectionsList),
-        "course_offered": len(tempSectionsList) > 0,
-        "course_valid": type(len(tempSectionsList)) == int,
-    }
-
-    dictionary["program"] = []
-    dictionary["category"] = []
-    dictionary["audience"] = []
-    if resultant_program_list:
-        dictionary["program"] = resultant_program_list
-    if resultant_category_list:
-        dictionary["category"] = resultant_category_list
-    if resultant_audience_list:
-        dictionary["audience"] = resultant_audience_list
+    dictionary["term"] = term
+    dictionary["term_exclusive"] = term_exclusive
+    dictionary["format_of_course"] = format_of_course
+    dictionary["section_units"] = section_units
+    dictionary["units_range"] = units_range
+    dictionary["unitsMin"] = unitsMin
+    dictionary["unitsMax"] = unitsMax
+    dictionary["days"] = days_list_global
+    dictionary["course_times"] = course_times_list_global
+    dictionary["course_times_availability"] = course_times_availability
+    dictionary["instructors"] = instructors_list_global
+    dictionary["sections"] = tempSectionsList
+    dictionary["section_count"] = len(tempSectionsList)
+    dictionary["course_offered"] = len(tempSectionsList) > 0
+    dictionary["course_valid"] = type(len(tempSectionsList)) == int
 
     return dictionary
 
