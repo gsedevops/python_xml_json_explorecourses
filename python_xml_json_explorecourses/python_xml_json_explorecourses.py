@@ -1006,7 +1006,6 @@ def concise_course_dictionary_course_response(course, request_url_string):
     return dictionary
 
 
-# jonathan
 def concise_course_dictionary_course_response_flattened_sections(
     course, request_url_string
 ):
@@ -1130,161 +1129,161 @@ def concise_course_dictionary_course_response_flattened_sections(
                         tempSection["unitsMin"] = unitsMin
                         tempSection["unitsMax"] = unitsMax
 
-                    # print("term: " + term)
-                    # print("format_of_course: " + format_of_course)
-                    # print("section_units: " + section_units)
-                    schedulesList = section.getElementsByTagName("schedules")
-                    for schedulesNode in schedulesList:
-                        # print(" *  scheduleNode  * ")
-                        if schedulesNode.nodeType == Node.ELEMENT_NODE:
-                            schedules = schedulesNode
-                            schedList = schedules.getElementsByTagName("schedule")
+                        # section_units = section.getElementsByTagName("units")[
+                        # print("term: " + term)
+                        # print("format_of_course: " + format_of_course)
+                        # print("section_units: " + section_units)
+                        schedulesList = section.getElementsByTagName("schedules")
+                        for schedulesNode in schedulesList:
+                            print(" *  scheduleNode  * ")
+                            if schedulesNode.nodeType == Node.ELEMENT_NODE:
+                                schedules = schedulesNode
+                                schedList = schedules.getElementsByTagName("schedule")
 
-                            for schedNode in schedList:
-                                if schedNode.nodeType == Node.ELEMENT_NODE:
-                                    schedule = schedNode
-                                    if section.getElementsByTagName("days")[
-                                        0
-                                    ].firstChild:
-                                        days = section.getElementsByTagName("days")[
+                                for schedNode in schedList:
+                                    if schedNode.nodeType == Node.ELEMENT_NODE:
+                                        schedule = schedNode
+                                        if section.getElementsByTagName("days")[
                                             0
-                                        ].firstChild.nodeValue
+                                        ].firstChild:
+                                            days = section.getElementsByTagName("days")[
+                                                0
+                                            ].firstChild.nodeValue
 
-                                    if section.getElementsByTagName("startTime")[
-                                        0
-                                    ].firstChild:
-                                        startTime = section.getElementsByTagName(
-                                            "startTime"
-                                        )[0].firstChild.nodeValue
+                                        if section.getElementsByTagName("startTime")[
+                                            0
+                                        ].firstChild:
+                                            startTime = section.getElementsByTagName(
+                                                "startTime"
+                                            )[0].firstChild.nodeValue
 
-                                        startTimeMil = military_time(startTime)
-                                        startTime = pretty_print_time(startTime)
-                                        tempSection["startTime"] = startTime
+                                            startTimeMil = military_time(startTime)
+                                            startTime = pretty_print_time(startTime)
+                                            tempSection["startTime"] = startTime
 
-                                    if section.getElementsByTagName("endTime")[
-                                        0
-                                    ].firstChild:
-                                        endTime = section.getElementsByTagName(
-                                            "endTime"
-                                        )[0].firstChild.nodeValue
-                                        endTimeMil = military_time(endTime)
-                                        endTime = pretty_print_time(endTime)
-                                        tempSection["endTime"] = endTime
+                                        if section.getElementsByTagName("endTime")[
+                                            0
+                                        ].firstChild:
+                                            endTime = section.getElementsByTagName(
+                                                "endTime"
+                                            )[0].firstChild.nodeValue
+                                            endTimeMil = military_time(endTime)
+                                            endTime = pretty_print_time(endTime)
+                                            tempSection["endTime"] = endTime
 
-                                        # https://stackoverflow.com/questions/39298054/generating-15-minute-time-interval-array-in-python
-                                        # 10 minute intervals
-                                        # https://j0qnt6ghyd.execute-api.us-west-2.amazonaws.com/dev/course_total_subject_search/acct
-                                        # https://j0qnt6ghyd.execute-api.us-west-2.amazonaws.com/dev/course/acct313
-                                        # 1:15 - 2:35, levels out to 1:20 to 2:30
-                                        course_times_list = (
-                                            pd.DataFrame(
-                                                columns=["NULL"],
-                                                index=pd.date_range(
-                                                    "2016-09-01T00:00:00Z",
-                                                    "2016-09-01T23:59:00Z",
-                                                    freq="10min",
-                                                ),
-                                            )
-                                            .between_time(startTimeMil, endTimeMil)
-                                            .index.strftime("%H%M")
-                                            .tolist()
-                                        )
-                                        # https://www.geeksforgeeks.org/python-converting-all-strings-in-list-to-integers/
-                                        course_times_list = list(
-                                            map(int, course_times_list)
-                                        )
-
-                                        course_times_list_global.append(
-                                            course_times_list
-                                        )
-
-                                    if section.getElementsByTagName("location")[
-                                        0
-                                    ].firstChild:
-                                        location = section.getElementsByTagName(
-                                            "location"
-                                        )[0].firstChild.nodeValue
-                                        tempSection["location"] = location
-
-                                    # remove carriage returns and tabs, Monday \t\n Wednesday case somewhere...
-                                    if days:
-                                        days = days.strip()
-                                    # print(startTime)
-                                    # print(endTime)
-                                    # https://www.digitalocean.com/community/tutorials/python-remove-spaces-from-string
-                                    s = days
-                                    days_split_list = s.split()
-                                    days = " ".join(days_split_list)
-                                    # print(len(days))
-                                    # print(days)
-                                    # print(location)
-                                    tempSection["days"] = days
-                                    days_list_global.append(days_split_list)
-
-                                    instructorsList = (
-                                        # section.getElementsByTagName(
-                                        schedule.getElementsByTagName("instructors")
-                                    )
-                                    for instructorsNode in instructorsList:
-                                        # print(" *  instructorsNode  * ")
-                                        if (
-                                            instructorsNode.nodeType
-                                            == Node.ELEMENT_NODE
-                                        ):
-                                            instructors = instructorsNode
-                                            instructorList = (
-                                                instructors.getElementsByTagName(
-                                                    "instructor"
+                                            # https://stackoverflow.com/questions/39298054/generating-15-minute-time-interval-array-in-python
+                                            # 10 minute intervals
+                                            # https://j0qnt6ghyd.execute-api.us-west-2.amazonaws.com/dev/course_total_subject_search/acct
+                                            # https://j0qnt6ghyd.execute-api.us-west-2.amazonaws.com/dev/course/acct313
+                                            # 1:15 - 2:35, levels out to 1:20 to 2:30
+                                            course_times_list = (
+                                                pd.DataFrame(
+                                                    columns=["NULL"],
+                                                    index=pd.date_range(
+                                                        "2016-09-01T00:00:00Z",
+                                                        "2016-09-01T23:59:00Z",
+                                                        freq="10min",
+                                                    ),
                                                 )
+                                                .between_time(startTimeMil, endTimeMil)
+                                                .index.strftime("%H%M")
+                                                .tolist()
+                                            )
+                                            # https://www.geeksforgeeks.org/python-converting-all-strings-in-list-to-integers/
+                                            course_times_list = list(
+                                                map(int, course_times_list)
                                             )
 
-                                            for instructorNode in instructorList:
-                                                if (
-                                                    instructorNode.nodeType
-                                                    == Node.ELEMENT_NODE
-                                                ):
-                                                    instructor = instructorNode
-                                                    # instructor_name = (
-                                                    #    instructor.getElementsByTagName(
-                                                    #        "name"
-                                                    #    )[0].firstChild.nodeValue
-                                                    # )
-                                                    first_name = (
-                                                        instructor.getElementsByTagName(
+                                            course_times_list_global.append(
+                                                course_times_list
+                                            )
+
+                                        if section.getElementsByTagName("location")[
+                                            0
+                                        ].firstChild:
+                                            location = section.getElementsByTagName(
+                                                "location"
+                                            )[0].firstChild.nodeValue
+                                            tempSection["location"] = location
+
+                                        # remove carriage returns and tabs, Monday \t\n Wednesday case somewhere...
+                                        if days:
+                                            days = days.strip()
+                                        # print(startTime)
+                                        # print(endTime)
+                                        # https://www.digitalocean.com/community/tutorials/python-remove-spaces-from-string
+                                        s = days
+                                        days_split_list = s.split()
+                                        days = " ".join(days_split_list)
+                                        # print(len(days))
+                                        # print(days)
+                                        # print(location)
+                                        tempSection["days"] = days
+                                        days_list_global.append(days_split_list)
+
+                                        instructorsList = (
+                                            # section.getElementsByTagName(
+                                            schedule.getElementsByTagName("instructors")
+                                        )
+                                        for instructorsNode in instructorsList:
+                                            # print(" *  instructorsNode  * ")
+                                            if (
+                                                instructorsNode.nodeType
+                                                == Node.ELEMENT_NODE
+                                            ):
+                                                instructors = instructorsNode
+                                                instructorList = (
+                                                    instructors.getElementsByTagName(
+                                                        "instructor"
+                                                    )
+                                                )
+
+                                                for instructorNode in instructorList:
+                                                    if (
+                                                        instructorNode.nodeType
+                                                        == Node.ELEMENT_NODE
+                                                    ):
+                                                        instructor = instructorNode
+                                                        # instructor_name = (
+                                                        #    instructor.getElementsByTagName(
+                                                        #        "name"
+                                                        #    )[0].firstChild.nodeValue
+                                                        # )
+                                                        first_name = instructor.getElementsByTagName(
                                                             "firstName"
-                                                        )[0].firstChild.nodeValue
-                                                    )
-                                                    last_name = (
-                                                        instructor.getElementsByTagName(
+                                                        )[
+                                                            0
+                                                        ].firstChild.nodeValue
+                                                        last_name = instructor.getElementsByTagName(
                                                             "lastName"
-                                                        )[0].firstChild.nodeValue
-                                                    )
-                                                    instructor_name = (
-                                                        f"{first_name} {last_name}"
-                                                    )
-                                                    instructors_list.append(
-                                                        instructor_name
-                                                    )
-                                                    instructors_list_global.append(
-                                                        instructor_name
-                                                    )
+                                                        )[
+                                                            0
+                                                        ].firstChild.nodeValue
+                                                        instructor_name = (
+                                                            f"{first_name} {last_name}"
+                                                        )
+                                                        instructors_list.append(
+                                                            instructor_name
+                                                        )
+                                                        instructors_list_global.append(
+                                                            instructor_name
+                                                        )
 
-                                    # print(instructors_list)
-                                    instructors_string = ""
-                                    if len(instructors_list) > 0:
-                                        temp_instructors_list = []
-                                        for item in instructors_list:
-                                            if item not in temp_instructors_list:
-                                                temp_instructors_list.append(item)
-                                        instructors_string = "; ".join(
-                                            str(e) for e in temp_instructors_list
-                                        )
-                                        tempSection["instructor_name"] = (
-                                            instructors_string
-                                        )
+                                        # print(instructors_list)
+                                        instructors_string = ""
+                                        if len(instructors_list) > 0:
+                                            temp_instructors_list = []
+                                            for item in instructors_list:
+                                                if item not in temp_instructors_list:
+                                                    temp_instructors_list.append(item)
+                                            instructors_string = "; ".join(
+                                                str(e) for e in temp_instructors_list
+                                            )
+                                            tempSection["instructor_name"] = (
+                                                instructors_string
+                                            )
 
-                    # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
-                    if "section_units" in tempSection:
+                        # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                         tempSectionsList.append(tempSection)
                     # print(tempSectionsList)
             temp_term_list = []
