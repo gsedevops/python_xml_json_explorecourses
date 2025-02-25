@@ -2,6 +2,7 @@ import gzip
 import itertools
 import io
 import json
+import os
 import pandas as pd
 import pendulum
 import re
@@ -1630,6 +1631,68 @@ def concise_course_dictionary_course_response_educ_main_website(
     return dictionary
 
 
+class CacheManager:
+    def __init__(self, cache_file="cache.json"):
+        self.cache_file = cache_file
+        self.load_cache()
+
+    def load_cache(self):
+        if os.path.exists(self.cache_file):
+            with open(self.cache_file, "r") as f:
+                self.cache = json.load(f)
+        else:
+            self.cache = {}
+
+    def save_cache(self):
+        with open(self.cache_file, "w") as f:
+            json.dump(self.cache, f)
+
+    def get(self, key):
+        return self.cache.get(key)
+
+    def set(self, key, value):
+        self.cache[key] = value
+        self.save_cache()
+
+
+def fetch_xml(params, sanitized_course):
+    print("making json")
+    cache_manager = CacheManager()
+
+    # Generate a cache key based on the parameters (e.g., using the query string)
+    cache_key = str(params)
+
+    # Check if the result is in the cache
+    cached_response = cache_manager.get(cache_key)
+    if cached_response:
+        xml_string = cached_response["xml_string"]
+        request_url_string = cached_response["request_url_string"]
+        print("Fetched from cache")
+    else:
+        print("going for response")
+        response = requests.get(
+            "https://explorecourses.stanford.edu/search", params=params
+        )
+        print("response")
+        xml_string = response.content.decode("UTF-8")
+        request_url = furl(response.url)
+        request_url.remove(["q"]).url
+        request_url.add({"q": sanitized_course}).url
+        request_url_string = str(request_url)
+        print(request_url_string)
+
+        # Store the response in cache
+        cache_manager.set(
+            cache_key,
+            {"xml_string": xml_string, "request_url_string": request_url_string},
+        )
+        print("Fetched from API")
+
+    print("json resultant")
+    print(request_url_string)
+    return xml_string, request_url_string
+
+
 def xml_to_dictionary(**params):
     # https://stackoverflow.com/questions/15301999/default-arguments-with-args-and-kwargs
     # https://stackoverflow.com/a/64926425
@@ -1652,22 +1715,27 @@ def xml_to_dictionary(**params):
         "course_valid": False,
     }
 
+    """
     # if containsNumber(params["q"]) and not params["q"][0].isdigit():
     response = requests.get("https://explorecourses.stanford.edu/search", params=params)
+    xml_string = response.content.decode("UTF-8")
+    request_url = furl(response.url)
+    """
+    xml_string, request_url_string = fetch_xml(params, sanitized_course)
+
     # request_url = response.url
     # https://stackoverflow.com/questions/43607870/how-to-change-values-of-url-query-in-python
     # https://github.com/gruns/furl
-    request_url = furl(response.url)
-    request_url.remove(["q"]).url
-    request_url.add({"q": sanitized_course}).url
-    request_url_string = str(request_url)
+    # request_url = furl(response.url)
+    # request_url.remove(["q"]).url
+    # request_url.add({"q": sanitized_course}).url
+    # request_url_string = str(request_url)
 
     # print(response.content)
-    dict_data = xmltodict.parse(response.content)
+    # dict_data = xmltodict.parse(response.content)
     # print(dict_data)
     # print(json.dumps(dict_data, indent=2))
 
-    xml_string = response.content.decode("UTF-8")
     document = parseString(xml_string)
     set_id_attribute(document)
     remove_whitespace(document)
