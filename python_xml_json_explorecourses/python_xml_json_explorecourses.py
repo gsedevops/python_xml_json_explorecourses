@@ -1011,7 +1011,7 @@ def concise_course_dictionary_course_response_flattened_sections(
 ):
     code = days = description = endTime = format_of_course = grading = location = (
         section_units
-    ) = startTime = subject = title = unitsMin = unitsMax = year = ""
+    ) = startTime = subject = tags_string = title = unitsMin = unitsMax = year = ""
 
     course_times_list_global = []
     days_list_global = []
@@ -1052,7 +1052,6 @@ def concise_course_dictionary_course_response_flattened_sections(
 
     grading = course.getElementsByTagName("grading")[0].firstChild.nodeValue
 
-    # print()
     tagsList = course.getElementsByTagName("tags")
     for tagsNode in tagsList:
         if tagsNode.nodeType == Node.ELEMENT_NODE:
@@ -1072,12 +1071,10 @@ def concise_course_dictionary_course_response_flattened_sections(
                     elif organization == "CARDCOURSES" and name == "educ":
                         tags_list.append(organization)
 
-    tags_string = ""  # move this variable up
     resultant_program_list = []
     resultant_category_list = []
     resultant_audience_list = []
     if len(tags_list) > 0:
-        # print(tags_list)
         tags_string = "; ".join(str(e) for e in tags_list)
         resultant_program_list = intersection(tags_list, Program_list)
         resultant_category_list = intersection(tags_list, Category_list)
@@ -1085,20 +1082,7 @@ def concise_course_dictionary_course_response_flattened_sections(
         resultant_program_list.sort()
         resultant_category_list.sort()
         resultant_audience_list.sort(reverse=True)
-        # print(tags_string)
 
-    # print("*")
-    # print()
-    # print("Subject: " + subject)
-    # print("code: " + code)
-    # print("title: " + title)
-    # print("year: " + year)
-    # print("grading: " + grading)
-    # print("*")
-    # print("description: " + description)
-    # print("*")
-    # print()
-    #
     dictionary = {
         "subject": subject,
         "code": code,
@@ -1110,21 +1094,6 @@ def concise_course_dictionary_course_response_flattened_sections(
         "explorecourses_url": explorecourses_url,
         "explorecourses_xml": request_url_string_new,
         "coursediscovery_url": coursediscovery_url,
-        # "term": term,
-        # "term_exclusive": term_exclusive,
-        # "format_of_course": format_of_course,
-        # "section_units": section_units,
-        # "units_range": units_range,
-        # "unitsMin": unitsMin,
-        # "unitsMax": unitsMax,
-        # "days": days_list_global,
-        # "course_times": course_times_list_global,
-        # "course_times_availability": course_times_availability,
-        # "instructors": instructors_list_global,
-        # "sections": tempSectionsList,
-        # "section_count": len(tempSectionsList),
-        # "course_offered": len(tempSectionsList) > 0,
-        # "course_valid": type(len(tempSectionsList)) == int,
     }
     dictionary["program"] = []
     dictionary["category"] = []
