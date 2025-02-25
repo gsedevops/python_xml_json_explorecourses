@@ -1039,6 +1039,27 @@ def concise_course_dictionary_course_response_flattened_sections(
         description = ""
 
     grading = course.getElementsByTagName("grading")[0].firstChild.nodeValue
+
+    # print()
+    tagsList = course.getElementsByTagName("tags")
+    for tagsNode in tagsList:
+        if tagsNode.nodeType == Node.ELEMENT_NODE:
+            tags = tagsNode
+            tagList = tags.getElementsByTagName("tag")
+
+            for tagNode in tagList:
+                if tagNode.nodeType == Node.ELEMENT_NODE:
+                    tag = tagNode
+                    name = tag.getElementsByTagName("name")[0].firstChild.nodeValue
+                    organization = tag.getElementsByTagName("organization")[
+                        0
+                    ].firstChild.nodeValue
+                    if organization == "EDUC":
+                        # print(name)
+                        tags_list.append(name)
+                    elif organization == "CARDCOURSES" and name == "educ":
+                        tags_list.append(organization)
+
     # print("*")
     # print()
     # print("Subject: " + subject)
@@ -1275,26 +1296,6 @@ def concise_course_dictionary_course_response_flattened_sections(
             term_exclusive = list(
                 map(lambda string: "".join(filter(str.isalpha, string)), term)
             )
-
-    # print()
-    tagsList = course.getElementsByTagName("tags")
-    for tagsNode in tagsList:
-        if tagsNode.nodeType == Node.ELEMENT_NODE:
-            tags = tagsNode
-            tagList = tags.getElementsByTagName("tag")
-
-            for tagNode in tagList:
-                if tagNode.nodeType == Node.ELEMENT_NODE:
-                    tag = tagNode
-                    name = tag.getElementsByTagName("name")[0].firstChild.nodeValue
-                    organization = tag.getElementsByTagName("organization")[
-                        0
-                    ].firstChild.nodeValue
-                    if organization == "EDUC":
-                        # print(name)
-                        tags_list.append(name)
-                    elif organization == "CARDCOURSES" and name == "educ":
-                        tags_list.append(organization)
 
     if len(instructors_list_global) > 0:
         # remove duplicates
