@@ -1060,6 +1060,21 @@ def concise_course_dictionary_course_response_flattened_sections(
                     elif organization == "CARDCOURSES" and name == "educ":
                         tags_list.append(organization)
 
+    tags_string = ""  # move this variable up
+    resultant_program_list = []
+    resultant_category_list = []
+    resultant_audience_list = []
+    if len(tags_list) > 0:
+        # print(tags_list)
+        tags_string = "; ".join(str(e) for e in tags_list)
+        resultant_program_list = intersection(tags_list, Program_list)
+        resultant_category_list = intersection(tags_list, Category_list)
+        resultant_audience_list = intersection(tags_list, Audience_list)
+        resultant_program_list.sort()
+        resultant_category_list.sort()
+        resultant_audience_list.sort(reverse=True)
+        # print(tags_string)
+
     # print("*")
     # print()
     # print("Subject: " + subject)
@@ -1307,21 +1322,6 @@ def concise_course_dictionary_course_response_flattened_sections(
         temp_instructors_list.sort()
         # instructors_string = "; ".join(str(e) for e in temp_instructors_list)
         instructors_list_global = temp_instructors_list
-
-    tags_string = ""
-    resultant_program_list = []
-    resultant_category_list = []
-    resultant_audience_list = []
-    if len(tags_list) > 0:
-        # print(tags_list)
-        tags_string = "; ".join(str(e) for e in tags_list)
-        resultant_program_list = intersection(tags_list, Program_list)
-        resultant_category_list = intersection(tags_list, Category_list)
-        resultant_audience_list = intersection(tags_list, Audience_list)
-        resultant_program_list.sort()
-        resultant_category_list.sort()
-        resultant_audience_list.sort(reverse=True)
-        # print(tags_string)
 
     if len(days_list_global) > 0:
 
