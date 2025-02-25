@@ -1729,10 +1729,8 @@ def xml_to_dictionary(**params):
                     if "::" in sanitized_course or (
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
-                        single_course_dictionary = (
-                            concise_course_dictionary_course_response(
-                                course, request_url_string
-                            )
+                        single_course_dictionary = concise_course_dictionary_course_response_flattened_sections(
+                            course, request_url_string
                         )
                         if single_course_dictionary["course_offered"]:
                             course_dictionary_list.append(single_course_dictionary)
