@@ -1492,10 +1492,11 @@ def concise_course_dictionary_course_response_flattened_sections(
             course_times_list = section["course_times_list"]
             course_times_availability = get_course_times_availability(course_times_list)
 
-            dictionary["term"] = section["term"]
-            dictionary["term_exclusive"] = "".join(
-                [char for char in term if char.isalpha()]
-            )
+            local_term = section["term"]
+            dictionary["term"] = [local_term]
+            dictionary["term_exclusive"] = [
+                "".join([char for char in local_term if char.isalpha()])
+            ]
             dictionary["format_of_course"] = section["format_of_course"]
             dictionary["section_units"] = section["section_units"]
             dictionary["units_range"] = section["units_range"]
@@ -1802,7 +1803,8 @@ def xml_to_dictionary(**params):
         "course_offered": False,
         "course_valid": False,
     }
-    dev_environment = True
+    # set this to true to cache the requests
+    dev_environment = False
     xml_string, request_url_string = fetch_xml(
         params, sanitized_course, dev_environment
     )
