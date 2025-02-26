@@ -1384,9 +1384,6 @@ def concise_course_dictionary_course_response_flattened_sections(
         for section in tempSectionsList
     )
     if has_INS_TD:
-        print(code)
-        print(has_INS_TD)
-
         temp_term_list = []
         for item in term_list:
             if item not in temp_term_list:
@@ -1487,7 +1484,9 @@ def concise_course_dictionary_course_response_flattened_sections(
         dictionary["section_count"] = len(tempSectionsList)
         dictionary["course_offered"] = len(tempSectionsList) > 0
         dictionary["course_valid"] = type(len(tempSectionsList)) == int
+        return dictionary
     else:
+        list_response = []
         for section in tempSectionsList:
 
             course_times_list = section["course_times_list"]
@@ -1508,21 +1507,13 @@ def concise_course_dictionary_course_response_flattened_sections(
             dictionary["course_times_availability"] = course_times_availability
             dictionary["instructors"] = section["instructors_list"]
 
-            dictionary["sections"] = section
+            dictionary["sections"] = [section]
             dictionary["section_count"] = 1
             dictionary["course_offered"] = "cancelled" not in section["notes"]
             dictionary["course_valid"] = True
+            list_response.append(dictionary)
 
-            # print(code)
-            # print(term)
-            # print(term_exclusive)
-            # print(section["format_of_course"])
-            print(dictionary)
-            print(" ")
-
-        dictionary["course_offered"] = True
-
-    return dictionary
+        return list_response
 
 
 def concise_course_dictionary_course_response_educ_main_website(
@@ -1745,8 +1736,8 @@ class CacheManager:
         self.save_cache()
 
 
-def fetch_xml(params, sanitized_course):
-    print("making json")
+def fetch_xml(params, sanitized_course, dev_environment):
+
     cache_manager = CacheManager()
 
     # Generate a cache key based on the parameters (e.g., using the query string)
@@ -1754,32 +1745,33 @@ def fetch_xml(params, sanitized_course):
 
     # Check if the result is in the cache
     cached_response = cache_manager.get(cache_key)
-    if cached_response:
+    if dev_environment and cached_response:
         xml_string = cached_response["xml_string"]
         request_url_string = cached_response["request_url_string"]
-        print("Fetched from cache")
+        # print("Fetched from cache")
     else:
-        print("going for response")
+        # print("going for response")
         response = requests.get(
             "https://explorecourses.stanford.edu/search", params=params
         )
-        print("response")
+        # print("response")
         xml_string = response.content.decode("UTF-8")
         request_url = furl(response.url)
         request_url.remove(["q"]).url
         request_url.add({"q": sanitized_course}).url
         request_url_string = str(request_url)
-        print(request_url_string)
+        # print(request_url_string)
 
-        # Store the response in cache
-        cache_manager.set(
-            cache_key,
-            {"xml_string": xml_string, "request_url_string": request_url_string},
-        )
-        print("Fetched from API")
+        if dev_environment:
+            # Store the response in cache
+            cache_manager.set(
+                cache_key,
+                {"xml_string": xml_string, "request_url_string": request_url_string},
+            )
+            # print("Fetched from API")
 
-    print("json resultant")
-    print(request_url_string)
+    # print("json resultant")
+    # print(request_url_string)
     return xml_string, request_url_string
 
 
@@ -1811,7 +1803,10 @@ def xml_to_dictionary(**params):
     xml_string = response.content.decode("UTF-8")
     request_url = furl(response.url)
     """
-    xml_string, request_url_string = fetch_xml(params, sanitized_course)
+    dev_environment = True
+    xml_string, request_url_string = fetch_xml(
+        params, sanitized_course, dev_environment
+    )
 
     # request_url = response.url
     # https://stackoverflow.com/questions/43607870/how-to-change-values-of-url-query-in-python
@@ -1888,11 +1883,19 @@ def xml_to_dictionary(**params):
                     if "::" in sanitized_course or (
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
-                        single_course_dictionary = concise_course_dictionary_course_response_flattened_sections(
+                        response = concise_course_dictionary_course_response_flattened_sections(
                             course, request_url_string
                         )
-                        if single_course_dictionary["course_offered"]:
-                            course_dictionary_list.append(single_course_dictionary)
+                        if isinstance(response, list):
+                            # return "list"
+                            for resp in response:
+                                if resp["course_offered"]:
+                                    course_dictionary_list.append(resp)
+
+                        elif isinstance(response, dict):
+                            # return "dict"
+                            if response["course_offered"]:
+                                course_dictionary_list.append(response)
 
                     else:
                         second_conditional = code == sanitized_course_code
@@ -2060,8 +2063,6 @@ if __name__ == "__main__":
     print(json_object)
     """
 
-    print("hi there")
-
     params = {
         "academicYear": "20242025",
         "view": "xml-20200810",
@@ -2071,4 +2072,4 @@ if __name__ == "__main__":
     dictionary = xml_to_dictionary(**params)
 
     json_object = json.dumps(dictionary, indent=2)
-    # print(json_object)
+    print(json_object)
