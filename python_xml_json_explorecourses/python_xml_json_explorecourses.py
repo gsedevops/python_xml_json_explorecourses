@@ -1320,16 +1320,16 @@ def concise_course_dictionary_course_response_flattened_sections(
                         # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                         tempSectionsList.append(tempSection)
                     # print(tempSectionsList)
-            temp_term_list = []
-            for item in term_list:
-                if item not in temp_term_list:
-                    temp_term_list.append(item)
-            term = sorted(temp_term_list, key=quarter_priority)
+    temp_term_list = []
+    for item in term_list:
+        if item not in temp_term_list:
+            temp_term_list.append(item)
+    term = sorted(temp_term_list, key=quarter_priority)
 
-            # https://stackoverflow.com/questions/34214139/python-keep-only-letters-in-string
-            term_exclusive = list(
-                map(lambda string: "".join(filter(str.isalpha, string)), term)
-            )
+    # https://stackoverflow.com/questions/34214139/python-keep-only-letters-in-string
+    term_exclusive = list(
+        map(lambda string: "".join(filter(str.isalpha, string)), term)
+    )
 
     if len(instructors_list_global) > 0:
         # remove duplicates
