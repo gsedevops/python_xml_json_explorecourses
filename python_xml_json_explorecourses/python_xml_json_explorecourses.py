@@ -1006,13 +1006,58 @@ def concise_course_dictionary_course_response(course, request_url_string):
     return dictionary
 
 
+def get_course_times_availability(course_times_list_x):
+
+    course_times_availability = {}
+    if len(course_times_list_x) > 0:
+        # first ensure no duplicates
+        temp_c_list = []
+        for item in course_times_list_x:
+            if item not in temp_c_list:
+                temp_c_list.append(item)
+
+        has_sublists = any(isinstance(item, list) for item in temp_c_list)
+        if has_sublists:
+            # https://stackabuse.com/python-how-to-flatten-list-of-lists/
+            flat_list_c = list(itertools.chain(*temp_c_list))
+        else:
+            flat_list_c = temp_c_list
+
+        # remove duplicates
+        res = list(OrderedDict.fromkeys(flat_list_c))
+        course_times_list_x = sorted(res)
+        A = any(x < 1000 for x in course_times_list_x)
+        B = any((x >= 1000 and x < 1200) for x in course_times_list_x)
+        C = any((x >= 1200 and x < 1400) for x in course_times_list_x)
+        D = any((x >= 1400 and x < 1700) for x in course_times_list_x)
+        E = any((x >= 1700) for x in course_times_list_x)
+
+        # Early Morning (Before 10am) -> 800 - 1000 A
+        # Morning (10am - 12pm) -> 1000 - 1200 B
+        # Lunchtime (12pm - 2pm) -> 1200 - 1400 C
+        # Afternoon (2pm - 5pm) -> 1400 - 1700 D
+        # Evening (After 5pm)  -> 1700 - 2200 E
+
+        course_times_availability = {
+            "0800 - 1000": A,
+            "1000 - 1200": B,
+            "1200 - 1400": C,
+            "1400 - 1700": D,
+            "1700 - 2200": E,
+        }
+    return course_times_availability
+
+
 def concise_course_dictionary_course_response_flattened_sections(
     course, request_url_string
 ):
     code = days = description = endTime = format_of_course = grading = location = (
-        section_units
-    ) = startTime = subject = tags_string = title = unitsMin = unitsMax = year = ""
+        notes
+    ) = section_units = startTime = subject = tags_string = title = unitsMin = (
+        unitsMax
+    ) = year = ""
 
+    course_times_list = []
     course_times_list_global = []
     days_list_global = []
     instructors_list = []
@@ -1144,6 +1189,12 @@ def concise_course_dictionary_course_response_flattened_sections(
                     ].firstChild.nodeValue
                     tempSection["sectionNumber"] = sectionNumber
 
+                    if section.getElementsByTagName("notes")[0].firstChild:
+                        notes = section.getElementsByTagName("notes")[
+                            0
+                        ].firstChild.nodeValue
+                    tempSection["notes"] = notes
+
                     if section.getElementsByTagName("units")[0].firstChild:
 
                         section_units = section.getElementsByTagName("units")[
@@ -1162,6 +1213,7 @@ def concise_course_dictionary_course_response_flattened_sections(
                         tempSection["section_units"] = section_units
                         tempSection["unitsMin"] = unitsMin
                         tempSection["unitsMax"] = unitsMax
+                        tempSection["units_range"] = units_range
 
                         # section_units = section.getElementsByTagName("units")[
                         # print("term: " + term)
@@ -1231,6 +1283,9 @@ def concise_course_dictionary_course_response_flattened_sections(
                                             course_times_list_global.append(
                                                 course_times_list
                                             )
+                                        tempSection["course_times_list"] = (
+                                            course_times_list
+                                        )
 
                                         if section.getElementsByTagName("location")[
                                             0
@@ -1302,6 +1357,9 @@ def concise_course_dictionary_course_response_flattened_sections(
                                                         instructors_list_global.append(
                                                             instructor_name
                                                         )
+                                        tempSection["instructors_list"] = (
+                                            instructors_list
+                                        )
 
                                         # print(instructors_list)
                                         instructors_string = ""
@@ -1320,12 +1378,14 @@ def concise_course_dictionary_course_response_flattened_sections(
                         # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                         tempSectionsList.append(tempSection)
                     # print(tempSectionsList)
-    has_INS = any(
-        section.get("format_of_course") == "INS" for section in tempSectionsList
+    has_INS_TD = any(
+        section.get("format_of_course") == "INS"
+        or section.get("format_of_course") == "T/D"
+        for section in tempSectionsList
     )
-    if has_INS:
+    if has_INS_TD:
         print(code)
-        print(has_INS)
+        print(has_INS_TD)
 
         temp_term_list = []
         for item in term_list:
@@ -1368,6 +1428,10 @@ def concise_course_dictionary_course_response_flattened_sections(
         # Afternoon (2pm - 5pm) -> 1400 - 1700 D
         # Evening (After 5pm)  -> 1700 - 2200 E
         # https://stackoverflow.com/questions/19211828/using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-another
+        course_times_availability = get_course_times_availability(
+            course_times_list_global
+        )
+        """
         course_times_availability = {}
         if len(course_times_list_global) > 0:
             temp_c_list = []
@@ -1399,6 +1463,7 @@ def concise_course_dictionary_course_response_flattened_sections(
                 "1400 - 1700": D,
                 "1700 - 2200": E,
             }
+        """
 
         # if len(tempSectionsList) > 0:
         #    tempSectionsList = sorted(
@@ -1423,8 +1488,39 @@ def concise_course_dictionary_course_response_flattened_sections(
         dictionary["course_offered"] = len(tempSectionsList) > 0
         dictionary["course_valid"] = type(len(tempSectionsList)) == int
     else:
-        dictionary = {}
-        dictionary["course_offered"] = False
+        for section in tempSectionsList:
+
+            course_times_list = section["course_times_list"]
+            course_times_availability = get_course_times_availability(course_times_list)
+
+            dictionary["term"] = section["term"]
+            dictionary["term_exclusive"] = "".join(
+                [char for char in term if char.isalpha()]
+            )
+            dictionary["format_of_course"] = section["format_of_course"]
+            dictionary["section_units"] = section["section_units"]
+            dictionary["units_range"] = section["units_range"]
+            dictionary["unitsMin"] = section["unitsMin"]
+            dictionary["unitsMax"] = section["unitsMax"]
+            dictionary["days"] = section["days"].split()
+
+            dictionary["course_times"] = course_times_list
+            dictionary["course_times_availability"] = course_times_availability
+            dictionary["instructors"] = section["instructors_list"]
+
+            dictionary["sections"] = section
+            dictionary["section_count"] = 1
+            dictionary["course_offered"] = "cancelled" not in section["notes"]
+            dictionary["course_valid"] = True
+
+            # print(code)
+            # print(term)
+            # print(term_exclusive)
+            # print(section["format_of_course"])
+            print(dictionary)
+            print(" ")
+
+        dictionary["course_offered"] = True
 
     return dictionary
 
@@ -1975,4 +2071,4 @@ if __name__ == "__main__":
     dictionary = xml_to_dictionary(**params)
 
     json_object = json.dumps(dictionary, indent=2)
-    print(json_object)
+    # print(json_object)
