@@ -1320,6 +1320,13 @@ def concise_course_dictionary_course_response_flattened_sections(
                         # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                         tempSectionsList.append(tempSection)
                     # print(tempSectionsList)
+    has_INS = any(
+        section.get("format_of_course") == "INS" for section in tempSectionsList
+    )
+    if has_INS:
+        print(code)
+        print(has_INS)
+
     temp_term_list = []
     for item in term_list:
         if item not in temp_term_list:
