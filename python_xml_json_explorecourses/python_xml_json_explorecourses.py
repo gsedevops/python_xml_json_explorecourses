@@ -1772,6 +1772,12 @@ def fetch_xml(params, sanitized_course, dev_environment):
 
     # print("json resultant")
     # print(request_url_string)
+
+    # wip notes, before caching put in play
+    # print(response.content)
+    # dict_data = xmltodict.parse(response.content)
+    # print(dict_data)
+    # print(json.dumps(dict_data, indent=2))
     return xml_string, request_url_string
 
 
@@ -1796,40 +1802,17 @@ def xml_to_dictionary(**params):
         "course_offered": False,
         "course_valid": False,
     }
-
-    """
-    # if containsNumber(params["q"]) and not params["q"][0].isdigit():
-    response = requests.get("https://explorecourses.stanford.edu/search", params=params)
-    xml_string = response.content.decode("UTF-8")
-    request_url = furl(response.url)
-    """
     dev_environment = True
     xml_string, request_url_string = fetch_xml(
         params, sanitized_course, dev_environment
     )
-
-    # request_url = response.url
-    # https://stackoverflow.com/questions/43607870/how-to-change-values-of-url-query-in-python
-    # https://github.com/gruns/furl
-    # request_url = furl(response.url)
-    # request_url.remove(["q"]).url
-    # request_url.add({"q": sanitized_course}).url
-    # request_url_string = str(request_url)
-
-    # print(response.content)
-    # dict_data = xmltodict.parse(response.content)
-    # print(dict_data)
-    # print(json.dumps(dict_data, indent=2))
 
     document = parseString(xml_string)
     set_id_attribute(document)
     remove_whitespace(document)
     document.normalize()
 
-    # print(document)
-
     nList = document.getElementsByTagName("courses")
-    # print(nList)
 
     course_dictionary_list = []
     for cNode in nList:
@@ -1854,19 +1837,10 @@ def xml_to_dictionary(**params):
                 sanitized_course_code = my_list[1]
             elif len(my_list) == 1:
                 sanitized_course_code = ""
-            # exit()
-
-            # cList_first_response = [cList[0]]
-            # print(cList)
-            #
-            # for nNode in cList_first_response:
             for nNode in cList:
 
-                # adsf
                 if nNode.nodeType == Node.ELEMENT_NODE:
-                    # print(nNode)
                     course = nNode
-                    # subject = code = ""
                     if course.getElementsByTagName("subject")[0].firstChild:
                         subject = course.getElementsByTagName("subject")[
                             0
@@ -1876,26 +1850,29 @@ def xml_to_dictionary(**params):
                             0
                         ].firstChild.nodeValue
 
-                    # print(subject)
-                    # print(code)
-                    # exit()
-
                     if "::" in sanitized_course or (
                         totalSubjectSearch and subject == sanitized_course_subject
                     ):
-                        response = concise_course_dictionary_course_response_flattened_sections(
-                            course, request_url_string
-                        )
-                        if isinstance(response, list):
-                            # return "list"
-                            for resp in response:
-                                if resp["course_offered"]:
-                                    course_dictionary_list.append(resp)
-
-                        elif isinstance(response, dict):
-                            # return "dict"
+                        if totalSubjectSearch == 1:
+                            response = concise_course_dictionary_course_response(
+                                course, request_url_string
+                            )
                             if response["course_offered"]:
                                 course_dictionary_list.append(response)
+                        elif totalSubjectSearch == 2:
+                            response = concise_course_dictionary_course_response_flattened_sections(
+                                course, request_url_string
+                            )
+                            if isinstance(response, list):
+                                # return "list"
+                                for resp in response:
+                                    if resp["course_offered"]:
+                                        course_dictionary_list.append(resp)
+
+                            elif isinstance(response, dict):
+                                # return "dict"
+                                if response["course_offered"]:
+                                    course_dictionary_list.append(response)
 
                     else:
                         second_conditional = code == sanitized_course_code
@@ -2066,10 +2043,10 @@ if __name__ == "__main__":
     params = {
         "academicYear": "20242025",
         "view": "xml-20200810",
-        "totalSubjectSearch": 1,
+        "totalSubjectSearch": 2,
         "q": "EDUC",
     }
     dictionary = xml_to_dictionary(**params)
 
     json_object = json.dumps(dictionary, indent=2)
-    print(json_object)
+    # print(json_object)
