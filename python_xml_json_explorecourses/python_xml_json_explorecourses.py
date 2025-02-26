@@ -1327,101 +1327,104 @@ def concise_course_dictionary_course_response_flattened_sections(
         print(code)
         print(has_INS)
 
-    temp_term_list = []
-    for item in term_list:
-        if item not in temp_term_list:
-            temp_term_list.append(item)
-    term = sorted(temp_term_list, key=quarter_priority)
+        temp_term_list = []
+        for item in term_list:
+            if item not in temp_term_list:
+                temp_term_list.append(item)
+        term = sorted(temp_term_list, key=quarter_priority)
 
-    # https://stackoverflow.com/questions/34214139/python-keep-only-letters-in-string
-    term_exclusive = list(
-        map(lambda string: "".join(filter(str.isalpha, string)), term)
-    )
+        # https://stackoverflow.com/questions/34214139/python-keep-only-letters-in-string
+        term_exclusive = list(
+            map(lambda string: "".join(filter(str.isalpha, string)), term)
+        )
 
-    if len(instructors_list_global) > 0:
-        # remove duplicates
-        # https://www.digitalocean.com/community/tutorials/get-unique-values-from-a-list-in-python
-        temp_instructors_list = []
-        for item in instructors_list_global:
-            if item not in temp_instructors_list:
-                temp_instructors_list.append(item)
-        temp_instructors_list.sort()
-        # instructors_string = "; ".join(str(e) for e in temp_instructors_list)
-        instructors_list_global = temp_instructors_list
+        if len(instructors_list_global) > 0:
+            # remove duplicates
+            # https://www.digitalocean.com/community/tutorials/get-unique-values-from-a-list-in-python
+            temp_instructors_list = []
+            for item in instructors_list_global:
+                if item not in temp_instructors_list:
+                    temp_instructors_list.append(item)
+            temp_instructors_list.sort()
+            # instructors_string = "; ".join(str(e) for e in temp_instructors_list)
+            instructors_list_global = temp_instructors_list
 
-    if len(days_list_global) > 0:
+        if len(days_list_global) > 0:
 
-        temp_days_list = []
-        for item in days_list_global:
-            if item not in temp_days_list:
-                temp_days_list.append(item)
+            temp_days_list = []
+            for item in days_list_global:
+                if item not in temp_days_list:
+                    temp_days_list.append(item)
 
-        # https://stackabuse.com/python-how-to-flatten-list-of-lists/
-        flat_list = list(itertools.chain(*temp_days_list))
-        unique_list = list(set(flat_list))
-        days_list_global = sorted(unique_list, key=day_priority)
+            # https://stackabuse.com/python-how-to-flatten-list-of-lists/
+            flat_list = list(itertools.chain(*temp_days_list))
+            unique_list = list(set(flat_list))
+            days_list_global = sorted(unique_list, key=day_priority)
 
-    # five part list showing availability of
-    # Early Morning (Before 10am) -> 800 - 1000 A
-    # Morning (10am - 12pm) -> 1000 - 1200 B
-    # Lunchtime (12pm - 2pm) -> 1200 - 1400 C
-    # Afternoon (2pm - 5pm) -> 1400 - 1700 D
-    # Evening (After 5pm)  -> 1700 - 2200 E
-    # https://stackoverflow.com/questions/19211828/using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-another
-    course_times_availability = {}
-    if len(course_times_list_global) > 0:
-        temp_c_list = []
-        for item in course_times_list_global:
-            if item not in temp_c_list:
-                temp_c_list.append(item)
-
-        # https://stackabuse.com/python-how-to-flatten-list-of-lists/
-        flat_list_c = list(itertools.chain(*temp_c_list))
-        # remove duplicates
-        res = list(OrderedDict.fromkeys(flat_list_c))
-        course_times_list_global = sorted(res)
-        A = any(x < 1000 for x in course_times_list_global)
-        B = any((x >= 1000 and x < 1200) for x in course_times_list_global)
-        C = any((x >= 1200 and x < 1400) for x in course_times_list_global)
-        D = any((x >= 1400 and x < 1700) for x in course_times_list_global)
-        E = any((x >= 1700) for x in course_times_list_global)
-
+        # five part list showing availability of
         # Early Morning (Before 10am) -> 800 - 1000 A
         # Morning (10am - 12pm) -> 1000 - 1200 B
         # Lunchtime (12pm - 2pm) -> 1200 - 1400 C
         # Afternoon (2pm - 5pm) -> 1400 - 1700 D
         # Evening (After 5pm)  -> 1700 - 2200 E
+        # https://stackoverflow.com/questions/19211828/using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-another
+        course_times_availability = {}
+        if len(course_times_list_global) > 0:
+            temp_c_list = []
+            for item in course_times_list_global:
+                if item not in temp_c_list:
+                    temp_c_list.append(item)
 
-        course_times_availability = {
-            "0800 - 1000": A,
-            "1000 - 1200": B,
-            "1200 - 1400": C,
-            "1400 - 1700": D,
-            "1700 - 2200": E,
-        }
+            # https://stackabuse.com/python-how-to-flatten-list-of-lists/
+            flat_list_c = list(itertools.chain(*temp_c_list))
+            # remove duplicates
+            res = list(OrderedDict.fromkeys(flat_list_c))
+            course_times_list_global = sorted(res)
+            A = any(x < 1000 for x in course_times_list_global)
+            B = any((x >= 1000 and x < 1200) for x in course_times_list_global)
+            C = any((x >= 1200 and x < 1400) for x in course_times_list_global)
+            D = any((x >= 1400 and x < 1700) for x in course_times_list_global)
+            E = any((x >= 1700) for x in course_times_list_global)
 
-    # if len(tempSectionsList) > 0:
-    #    tempSectionsList = sorted(
-    #        tempSectionsList,
-    #        key=lambda x: quarter_priority_nested(x),
-    #        reverse=False,
-    #    )
+            # Early Morning (Before 10am) -> 800 - 1000 A
+            # Morning (10am - 12pm) -> 1000 - 1200 B
+            # Lunchtime (12pm - 2pm) -> 1200 - 1400 C
+            # Afternoon (2pm - 5pm) -> 1400 - 1700 D
+            # Evening (After 5pm)  -> 1700 - 2200 E
 
-    dictionary["term"] = term
-    dictionary["term_exclusive"] = term_exclusive
-    dictionary["format_of_course"] = format_of_course
-    dictionary["section_units"] = section_units
-    dictionary["units_range"] = units_range
-    dictionary["unitsMin"] = unitsMin
-    dictionary["unitsMax"] = unitsMax
-    dictionary["days"] = days_list_global
-    dictionary["course_times"] = course_times_list_global
-    dictionary["course_times_availability"] = course_times_availability
-    dictionary["instructors"] = instructors_list_global
-    dictionary["sections"] = tempSectionsList
-    dictionary["section_count"] = len(tempSectionsList)
-    dictionary["course_offered"] = len(tempSectionsList) > 0
-    dictionary["course_valid"] = type(len(tempSectionsList)) == int
+            course_times_availability = {
+                "0800 - 1000": A,
+                "1000 - 1200": B,
+                "1200 - 1400": C,
+                "1400 - 1700": D,
+                "1700 - 2200": E,
+            }
+
+        # if len(tempSectionsList) > 0:
+        #    tempSectionsList = sorted(
+        #        tempSectionsList,
+        #        key=lambda x: quarter_priority_nested(x),
+        #        reverse=False,
+        #    )
+
+        dictionary["term"] = term
+        dictionary["term_exclusive"] = term_exclusive
+        dictionary["format_of_course"] = format_of_course
+        dictionary["section_units"] = section_units
+        dictionary["units_range"] = units_range
+        dictionary["unitsMin"] = unitsMin
+        dictionary["unitsMax"] = unitsMax
+        dictionary["days"] = days_list_global
+        dictionary["course_times"] = course_times_list_global
+        dictionary["course_times_availability"] = course_times_availability
+        dictionary["instructors"] = instructors_list_global
+        dictionary["sections"] = tempSectionsList
+        dictionary["section_count"] = len(tempSectionsList)
+        dictionary["course_offered"] = len(tempSectionsList) > 0
+        dictionary["course_valid"] = type(len(tempSectionsList)) == int
+    else:
+        dictionary = {}
+        dictionary["course_offered"] = False
 
     return dictionary
 
