@@ -1066,6 +1066,9 @@ def concise_course_dictionary_course_response_flattened_sections(
     tempSectionsList = []
     units_range = []
 
+    code = course.getElementsByTagName("code")[0].firstChild.nodeValue
+    subject = course.getElementsByTagName("subject")[0].firstChild.nodeValue
+
     request_url_temp = furl(request_url_string)
     request_url_temp.remove(["totalSubjectSearch"]).url
     request_url_temp.remove(["q"]).url
@@ -1074,12 +1077,12 @@ def concise_course_dictionary_course_response_flattened_sections(
 
     explorecourses_url = request_url_string_new.replace("&view=xml-20200810", "catalog")
     if explorecourses_url and subject == "EDUC":
-        coursediscovery_url = f"https://coursediscovery.gse.stanford.edu/node/courses/{subject.lower()}-{code.lower()}-2024-2025"
+        # coursediscovery_url = f"https://coursediscovery.gse.stanford.edu/node/courses/{subject.lower()}-{code.lower()}-2024-2025"
+        coursediscovery_url = (
+            f"https://coursediscovery.gse.stanford.edu/educ/{code.lower()}"
+        )
     else:
         coursediscovery_url = ""
-
-    code = course.getElementsByTagName("code")[0].firstChild.nodeValue
-    subject = course.getElementsByTagName("subject")[0].firstChild.nodeValue
 
     year = course.getElementsByTagName("year")[0].firstChild.nodeValue
     title = course.getElementsByTagName("title")[0].firstChild.nodeValue
