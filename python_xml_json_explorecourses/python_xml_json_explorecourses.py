@@ -1357,9 +1357,10 @@ def concise_course_dictionary_course_response_flattened_sections(
                                                         instructors_list_global.append(
                                                             instructor_name
                                                         )
-                                        tempSection["instructors_list"] = (
-                                            instructors_list
-                                        )
+
+                                                tempSection["instructors_list"] = (
+                                                    instructors_list
+                                                )
 
                                         # print(instructors_list)
                                         instructors_string = ""
@@ -1375,12 +1376,12 @@ def concise_course_dictionary_course_response_flattened_sections(
                                                 instructors_string
                                             )
 
-                        # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
-                        tempSectionsList.append(tempSection)
-                    # print(tempSectionsList)
+                                        # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
+                                        tempSectionsList.append(tempSection)
     has_INS_TD = any(
         section.get("format_of_course") == "INS"
         or section.get("format_of_course") == "T/D"
+        # or section.get("format_of_course") == "ACT"
         for section in tempSectionsList
     )
     if has_INS_TD:
@@ -1487,33 +1488,32 @@ def concise_course_dictionary_course_response_flattened_sections(
         return dictionary
     else:
         list_response = []
-        for section in tempSectionsList:
-
-            course_times_list = section["course_times_list"]
+        for tsection in tempSectionsList:
+            tdictionary = {}
+            course_times_list = tsection["course_times_list"]
             course_times_availability = get_course_times_availability(course_times_list)
 
-            local_term = section["term"]
-            dictionary["term"] = [local_term]
-            dictionary["term_exclusive"] = [
+            local_term = tsection["term"]
+            tdictionary["term"] = [local_term]
+            tdictionary["term_exclusive"] = [
                 "".join([char for char in local_term if char.isalpha()])
             ]
-            dictionary["format_of_course"] = section["format_of_course"]
-            dictionary["section_units"] = section["section_units"]
-            dictionary["units_range"] = section["units_range"]
-            dictionary["unitsMin"] = section["unitsMin"]
-            dictionary["unitsMax"] = section["unitsMax"]
-            dictionary["days"] = section["days"].split()
-
-            dictionary["course_times"] = course_times_list
-            dictionary["course_times_availability"] = course_times_availability
-            dictionary["instructors"] = section["instructors_list"]
-
-            dictionary["sections"] = [section]
-            dictionary["section_count"] = 1
-            dictionary["course_offered"] = "cancelled" not in section["notes"]
-            dictionary["course_valid"] = True
-            list_response.append(dictionary)
-
+            tdictionary["format_of_course"] = tsection["format_of_course"]
+            tdictionary["section_units"] = tsection["section_units"]
+            tdictionary["units_range"] = tsection["units_range"]
+            tdictionary["unitsMin"] = tsection["unitsMin"]
+            tdictionary["unitsMax"] = tsection["unitsMax"]
+            tdictionary["days"] = tsection["days"].split()
+            tdictionary["course_times"] = course_times_list
+            tdictionary["course_times_availability"] = course_times_availability
+            tdictionary["instructors"] = tsection["instructors_list"]
+            tdictionary["sections"] = [tsection]
+            tdictionary["section_count"] = 1
+            tdictionary["course_offered"] = "cancelled" not in tsection["notes"]
+            tdictionary["course_valid"] = True
+            combined_dict = dictionary.copy()
+            combined_dict.update(tdictionary)
+            list_response.append(combined_dict)
         return list_response
 
 
