@@ -1007,25 +1007,24 @@ def concise_course_dictionary_course_response(course, request_url_string):
 
 
 def get_course_times_availability(course_times_list_x):
+    has_sublists = any(isinstance(item, list) for item in course_times_list_x)
 
     course_times_availability = {}
     if len(course_times_list_x) > 0:
-        # first ensure no duplicates
-        temp_c_list = []
-        for item in course_times_list_x:
-            if item not in temp_c_list:
-                temp_c_list.append(item)
-
-        has_sublists = any(isinstance(item, list) for item in temp_c_list)
         if has_sublists:
+            temp_c_list = []
+            for item in course_times_list_x:
+                if item not in temp_c_list:
+                    temp_c_list.append(item)
+
             # https://stackabuse.com/python-how-to-flatten-list-of-lists/
             flat_list_c = list(itertools.chain(*temp_c_list))
+            # remove duplicates
+            res = list(OrderedDict.fromkeys(flat_list_c))
+            course_times_list_x = sorted(res)
         else:
-            flat_list_c = temp_c_list
+            course_times_list_x = sorted(course_times_list_x)
 
-        # remove duplicates
-        res = list(OrderedDict.fromkeys(flat_list_c))
-        course_times_list_x = sorted(res)
         A = any(x < 1000 for x in course_times_list_x)
         B = any((x >= 1000 and x < 1200) for x in course_times_list_x)
         C = any((x >= 1200 and x < 1400) for x in course_times_list_x)
@@ -1045,7 +1044,7 @@ def get_course_times_availability(course_times_list_x):
             "1400 - 1700": D,
             "1700 - 2200": E,
         }
-    return course_times_availability
+    return course_times_availability, course_times_list_x
 
 
 def concise_course_dictionary_course_response_flattened_sections(
@@ -1378,13 +1377,13 @@ def concise_course_dictionary_course_response_flattened_sections(
 
                                         # https://www.geeksforgeeks.org/python-check-whether-given-key-already-exists-in-a-dictionary/
                                         tempSectionsList.append(tempSection)
-    has_INS_TD = any(
+    has_INS_TD_ACT = any(
         section.get("format_of_course") == "INS"
         or section.get("format_of_course") == "T/D"
-        # or section.get("format_of_course") == "ACT"
+        or section.get("format_of_course") == "ACT"
         for section in tempSectionsList
     )
-    if has_INS_TD:
+    if has_INS_TD_ACT:
         temp_term_list = []
         for item in term_list:
             if item not in temp_term_list:
@@ -1426,42 +1425,9 @@ def concise_course_dictionary_course_response_flattened_sections(
         # Afternoon (2pm - 5pm) -> 1400 - 1700 D
         # Evening (After 5pm)  -> 1700 - 2200 E
         # https://stackoverflow.com/questions/19211828/using-any-and-all-to-check-if-a-list-contains-one-set-of-values-or-another
-        course_times_availability = get_course_times_availability(
-            course_times_list_global
+        course_times_availability, course_times_list_global = (
+            get_course_times_availability(course_times_list_global)
         )
-        """
-        course_times_availability = {}
-        if len(course_times_list_global) > 0:
-            temp_c_list = []
-            for item in course_times_list_global:
-                if item not in temp_c_list:
-                    temp_c_list.append(item)
-
-            # https://stackabuse.com/python-how-to-flatten-list-of-lists/
-            flat_list_c = list(itertools.chain(*temp_c_list))
-            # remove duplicates
-            res = list(OrderedDict.fromkeys(flat_list_c))
-            course_times_list_global = sorted(res)
-            A = any(x < 1000 for x in course_times_list_global)
-            B = any((x >= 1000 and x < 1200) for x in course_times_list_global)
-            C = any((x >= 1200 and x < 1400) for x in course_times_list_global)
-            D = any((x >= 1400 and x < 1700) for x in course_times_list_global)
-            E = any((x >= 1700) for x in course_times_list_global)
-
-            # Early Morning (Before 10am) -> 800 - 1000 A
-            # Morning (10am - 12pm) -> 1000 - 1200 B
-            # Lunchtime (12pm - 2pm) -> 1200 - 1400 C
-            # Afternoon (2pm - 5pm) -> 1400 - 1700 D
-            # Evening (After 5pm)  -> 1700 - 2200 E
-
-            course_times_availability = {
-                "0800 - 1000": A,
-                "1000 - 1200": B,
-                "1200 - 1400": C,
-                "1400 - 1700": D,
-                "1700 - 2200": E,
-            }
-        """
 
         # if len(tempSectionsList) > 0:
         #    tempSectionsList = sorted(
@@ -1490,8 +1456,11 @@ def concise_course_dictionary_course_response_flattened_sections(
         list_response = []
         for tsection in tempSectionsList:
             tdictionary = {}
-            course_times_list = tsection["course_times_list"]
-            course_times_availability = get_course_times_availability(course_times_list)
+            # course_times_list = tsection["course_times_list"]
+            # course_times_availability = get_course_times_availability(course_times_list)
+            course_times_availability, course_times_list = (
+                get_course_times_availability(tsection["course_times_list"])
+            )
 
             local_term = tsection["term"]
             tdictionary["term"] = [local_term]
